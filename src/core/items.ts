@@ -112,3 +112,44 @@ export function searchItems(
     )
     .all({ match, repo: filter.repo ?? null }) as Item[];
 }
+
+export type Reminder = {
+  remindAt: number;
+  recurrence?: string | null;
+  recurrenceText?: string | null;
+};
+
+export function setReminder(
+  db: Database,
+  id: number,
+  reminder: Reminder,
+  now: number,
+): Item | null {
+  return db
+    .query(
+      `UPDATE items SET remind_at = $remindAt, recurrence = $recurrence, recurrence_text = $recurrenceText,
+         last_alerted_at = NULL, done_at = NULL, updated_at = $now
+       WHERE id = $id RETURNING ${COLUMNS}`,
+    )
+    .get({
+      id,
+      now,
+      remindAt: reminder.remindAt,
+      recurrence: reminder.recurrence ?? null,
+      recurrenceText: reminder.recurrenceText ?? null,
+    }) as Item | null;
+}
+
+export function clearReminder(
+  db: Database,
+  id: number,
+  now: number,
+): Item | null {
+  return db
+    .query(
+      `UPDATE items SET remind_at = NULL, recurrence = NULL, recurrence_text = NULL,
+         last_alerted_at = NULL, updated_at = $now
+       WHERE id = $id RETURNING ${COLUMNS}`,
+    )
+    .get({ id, now }) as Item | null;
+}

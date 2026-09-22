@@ -1,11 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import { openDb } from "./db";
 import {
+  clearReminder,
   createItem,
   deleteItem,
   getItem,
   listItems,
   searchItems,
+  setReminder,
   updateBody,
 } from "./items";
 
@@ -175,5 +177,54 @@ describe("listItems", () => {
 
   test("repo filters to one repo", () => {
     expect(ids(listItems(seeded(), { repo: "/a" }))).toEqual([3]);
+  });
+});
+
+describe("reminders", () => {
+  function withAlertedDoneItem() {
+    const db = openDb(":memory:");
+    createItem(db, { body: "x", repo: null, branch: null, remindAt: 10 }, 1);
+    db.run("UPDATE items SET last_alerted_at = 11, done_at = 12 WHERE id = 1");
+    return db;
+  }
+
+  test("setReminder replaces the time, clears alert state and reopens the item", () => {
+    const item = setReminder(withAlertedDoneItem(), 1, { remindAt: 500 }, 20);
+    expect(item).toMatchObject({
+      remindAt: 500,
+      recurrence: null,
+      recurrenceText: null,
+      lastAlertedAt: null,
+      doneAt: null,
+      updatedAt: 20,
+    });
+  });
+
+  test("setReminder stores a recurrence rule", () => {
+    const item = setReminder(
+      withAlertedDoneItem(),
+      1,
+      {
+        remindAt: 500,
+        recurrence: '{"kind":"daily","time":"09:00"}',
+        recurrenceText: "every day",
+      },
+      20,
+    );
+    expect(item).toMatchObject({
+      recurrence: '{"kind":"daily","time":"09:00"}',
+      recurrenceText: "every day",
+    });
+  });
+
+  test("clearReminder removes the reminder but leaves done state alone", () => {
+    const item = clearReminder(withAlertedDoneItem(), 1, 20);
+    expect(item).toMatchObject({
+      remindAt: null,
+      recurrence: null,
+      recurrenceText: null,
+      lastAlertedAt: null,
+      doneAt: 12,
+    });
   });
 });

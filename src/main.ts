@@ -2,6 +2,7 @@ import pkg from "../package.json";
 import { type Parsed, parseArgs, type Reserved } from "./cli/args";
 import type { Context } from "./cli/context";
 import { JotError, UsageError } from "./cli/errors";
+import { InputError } from "./core/errors";
 
 type Command = { run(parsed: Parsed, ctx: Context): number | Promise<number> };
 
@@ -12,6 +13,7 @@ const COMMANDS: Partial<Record<Reserved, () => Promise<Command>>> = {
   edit: () => import("./cli/edit"),
   rm: () => import("./cli/rm"),
   search: () => import("./cli/search"),
+  remind: () => import("./cli/remind"),
 };
 
 async function main(argv: string[]): Promise<number> {
@@ -33,7 +35,7 @@ async function main(argv: string[]): Promise<number> {
     const command = await load();
     return await command.run(parsed, createContext(process.env, process.cwd()));
   } catch (e) {
-    if (e instanceof UsageError) {
+    if (e instanceof UsageError || e instanceof InputError) {
       console.error(`jot: ${e.message}`);
       return 2;
     }
