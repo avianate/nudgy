@@ -17,6 +17,10 @@ const COMMANDS: Partial<Record<Reserved, () => Promise<Command>>> = {
   done: () => import("./cli/done"),
   reopen: () => import("./cli/reopen"),
   snooze: () => import("./cli/snooze"),
+  due: () => import("./cli/due"),
+  today: () => import("./cli/day"),
+  yesterday: () => import("./cli/day"),
+  tomorrow: () => import("./cli/day"),
 };
 
 async function main(argv: string[]): Promise<number> {

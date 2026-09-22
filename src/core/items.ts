@@ -183,3 +183,31 @@ export function snoozeItem(
     )
     .get({ id, remindAt, now }) as Item | null;
 }
+
+export function dueItems(db: Database, until: number): Item[] {
+  return db
+    .query(
+      `SELECT ${COLUMNS} FROM items
+       WHERE done_at IS NULL AND remind_at IS NOT NULL AND remind_at <= $until
+       ORDER BY remind_at, id`,
+    )
+    .all({ until }) as Item[];
+}
+
+export function dayItems(
+  db: Database,
+  window: { start: number; end: number; repo?: string },
+): Item[] {
+  return db
+    .query(
+      `SELECT ${COLUMNS} FROM items
+       WHERE ((created_at >= $start AND created_at < $end) OR (remind_at >= $start AND remind_at < $end))
+         AND ($repo IS NULL OR repo = $repo)
+       ORDER BY CASE WHEN remind_at >= $start AND remind_at < $end THEN remind_at ELSE created_at END, id`,
+    )
+    .all({
+      start: window.start,
+      end: window.end,
+      repo: window.repo ?? null,
+    }) as Item[];
+}

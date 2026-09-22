@@ -3,7 +3,9 @@ import { openDb } from "./db";
 import {
   clearReminder,
   createItem,
+  dayItems,
   deleteItem,
+  dueItems,
   getItem,
   listItems,
   markDone,
@@ -269,5 +271,52 @@ describe("done, reopen, snooze", () => {
       recurrence: '{"kind":"daily"}',
       recurrenceText: "every day",
     });
+  });
+});
+
+describe("dueItems and dayItems", () => {
+  const H = 3_600_000;
+  function seeded() {
+    const db = openDb(":memory:");
+    createItem(
+      db,
+      { body: "overdue", repo: null, branch: null, remindAt: 100 * H - 2 * H },
+      1,
+    );
+    createItem(
+      db,
+      { body: "soon", repo: null, branch: null, remindAt: 100 * H + H },
+      2,
+    );
+    createItem(
+      db,
+      { body: "later", repo: null, branch: null, remindAt: 100 * H + 30 * H },
+      3,
+    );
+    createItem(
+      db,
+      { body: "done", repo: null, branch: null, remindAt: 100 * H - H },
+      4,
+    );
+    createItem(db, { body: "plain", repo: "/a", branch: null }, 100 * H);
+    db.run("UPDATE items SET done_at = 1 WHERE id = 4");
+    return db;
+  }
+  const ids = (items: { id: number }[]) => items.map((i) => i.id);
+
+  test("dueItems returns open reminders due by the cutoff, earliest first", () => {
+    expect(ids(dueItems(seeded(), 100 * H + 24 * H))).toEqual([1, 2]);
+  });
+
+  test("dayItems returns items created or due in the window, in time order", () => {
+    expect(
+      ids(dayItems(seeded(), { start: 100 * H - 3 * H, end: 100 * H + 2 * H })),
+    ).toEqual([1, 4, 5, 2]);
+  });
+
+  test("dayItems filters by repo", () => {
+    expect(
+      ids(dayItems(seeded(), { start: 0, end: 200 * H, repo: "/a" })),
+    ).toEqual([5]);
   });
 });
