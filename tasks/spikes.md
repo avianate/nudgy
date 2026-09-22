@@ -95,4 +95,8 @@ notifier, with osascript kept as a fallback. SPEC.md was updated to match.
   it.
 - **Rebuild and re-sign:** after changing the binary and re-signing ad hoc (a new cdhash), the
   helper stayed authorized and the banner appeared. **The permission survives rebuilds.**
-- **Still open:** being launched by the daemon under launchd is checked after integration.
+- **Under launchd: pass.** After `install:local`, the daemon logged
+  `notifier helper+osascript`. A reminder due at 15:24:31 was posted through the helper at
+  15:25:00 with no fallback logged, and the human confirmed it showed as Jot with the title and
+  body.
+- **Cosmetic:** the bundle has no icon, so banners show a blank square. This is a follow-up.
