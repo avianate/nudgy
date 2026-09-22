@@ -43,7 +43,7 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 - [x] T18 TUI shell: two panes, tabs, nav, Markdown detail, `q`
 - [x] T19 TUI actions: `d` `s` `x` `r` `a`
 - [x] T20 TUI `/` search, `h` repo filter, `?` help, 30s refresh
-- [ ] T21 TUI `e` editor round-trip
+- [x] T21 TUI `e` editor round-trip
 - [ ] **Checkpoint 5:** SC1–SC12 all checked; human confirms SC10; manual checklist done
 
 ## Decisions

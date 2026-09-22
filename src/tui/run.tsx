@@ -2,6 +2,7 @@ import type { EventEmitter } from "node:events";
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import type { Context } from "../cli/context";
+import { editText } from "../cli/editor";
 import { App } from "./app";
 import { createStore } from "./store";
 
@@ -61,8 +62,17 @@ export async function runTui(ctx: Context): Promise<number> {
       destroy();
       resolve(0);
     };
+    // Hand the terminal to $EDITOR and take it back; the spike showed suspend/resume round-trips cleanly
+    const onEdit = async (item: { id: number; body: string }) => {
+      renderer.suspend();
+      try {
+        return editText(item.body, ctx.env, `jot-${item.id}.md`);
+      } finally {
+        renderer.resume();
+      }
+    };
     createRoot(renderer).render(
-      <App store={store} repo={origin.repo} onQuit={quit} />,
+      <App store={store} repo={origin.repo} onQuit={quit} onEdit={onEdit} />,
     );
   });
 }

@@ -2,7 +2,7 @@ import { basename } from "node:path";
 import { useFocus, useKeyboard, useTerminalDimensions } from "@opentui/react";
 import { useEffect, useMemo, useState } from "react";
 import { absolute, relative } from "../cli/format";
-import { title } from "../core/items";
+import { type Item, title } from "../core/items";
 import { type Store, TABS, type Tab } from "./store";
 import {
   Detail,
@@ -19,6 +19,8 @@ export type AppProps = {
   repo: string | null;
   refreshMs?: number;
   onQuit(): void;
+  // Returns the edited body, or null if the editor failed
+  onEdit?(item: Item): Promise<string | null>;
 };
 
 // Exactly one handler sees each key, so typing into a prompt can never trigger a shortcut
@@ -35,7 +37,13 @@ type Selection = { id: number | null; index: number };
 const clamp = (n: number, lo: number, hi: number) =>
   Math.max(lo, Math.min(hi, n));
 
-export function App({ store, repo, refreshMs = 30_000, onQuit }: AppProps) {
+export function App({
+  store,
+  repo,
+  refreshMs = 30_000,
+  onQuit,
+  onEdit,
+}: AppProps) {
   const { width, height } = useTerminalDimensions();
   const [tab, setTab] = useState<Tab>("due");
   const [version, setVersion] = useState(0);
@@ -156,7 +164,29 @@ export function App({ store, repo, refreshMs = 30_000, onQuit }: AppProps) {
       case "x":
         setMode({ kind: "confirm-delete", id });
         return;
+      case "e":
+        if (onEdit) void edit(selected);
+        return;
     }
+  };
+
+  const edit = async (item: Item) => {
+    let edited: string | null;
+    try {
+      edited = await (onEdit as NonNullable<typeof onEdit>)(item);
+    } catch (e) {
+      setStatus(`✗ ${(e as Error).message}`);
+      return;
+    }
+    attempt(() => {
+      if (edited === null)
+        return "✗ editor exited with an error; nothing saved";
+      const body = edited.trimEnd();
+      if (!body.trim()) return "✗ empty body; nothing saved";
+      if (body === item.body) return `#${item.id} unchanged`;
+      store.setBody(item.id, body);
+      return `saved #${item.id}`;
+    });
   };
 
   useKeyboard((key) => {
