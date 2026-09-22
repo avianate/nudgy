@@ -10,9 +10,9 @@ import {
   listItems,
   markDone,
   reopenItem,
+  rescheduleItem,
   searchItems,
   setReminder,
-  snoozeItem,
   updateBody,
 } from "./items";
 
@@ -265,7 +265,7 @@ describe("done, reopen, snooze", () => {
     db.run(
       `UPDATE items SET recurrence = '{"kind":"daily"}', recurrence_text = 'every day' WHERE id = 1`,
     );
-    expect(snoozeItem(db, 1, 900, 20)).toMatchObject({
+    expect(rescheduleItem(db, 1, 900, 20)).toMatchObject({
       remindAt: 900,
       lastAlertedAt: null,
       recurrence: '{"kind":"daily"}',

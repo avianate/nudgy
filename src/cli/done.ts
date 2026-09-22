@@ -1,7 +1,8 @@
-import { markDone } from "../core/items";
+import { completeItem } from "../core/lifecycle";
 import type { Parsed } from "./args";
 import { requireItem } from "./common";
 import type { Context } from "./context";
+import { absolute, relative } from "./format";
 
 export function run({ positionals }: Parsed, ctx: Context): number {
   const item = requireItem(ctx, positionals[0]);
@@ -9,7 +10,14 @@ export function run({ positionals }: Parsed, ctx: Context): number {
     ctx.out(`#${item.id} is already done`);
     return 0;
   }
-  markDone(ctx.db(), item.id, ctx.clock.now());
-  ctx.out(`done #${item.id}`);
+  const now = ctx.clock.now();
+  const updated = completeItem(ctx.db(), item, now);
+  if (updated?.doneAt === null && updated.remindAt !== null) {
+    ctx.out(
+      `#${item.id} next: ${absolute(updated.remindAt)} (${relative(updated.remindAt, now)})`,
+    );
+  } else {
+    ctx.out(`done #${item.id}`);
+  }
   return 0;
 }

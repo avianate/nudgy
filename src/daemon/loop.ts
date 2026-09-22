@@ -4,6 +4,7 @@ import { notificationFor, planAlerts } from "../core/alerts";
 import type { Clock } from "../core/clock";
 import { type Config, DEFAULT_CONFIG, loadConfig } from "../core/config";
 import { dueItems, markAlerted } from "../core/items";
+import { rollForwardDue } from "../core/lifecycle";
 import type { Paths } from "../core/paths";
 import type { Notifier } from "./notifier";
 
@@ -23,6 +24,7 @@ export async function tick(deps: TickDeps): Promise<void> {
     const config = readConfig(deps);
     const db = deps.db();
     const now = deps.clock.now();
+    rollForwardDue(db, now);
     const due = dueItems(db, now);
     const plan = planAlerts(due, now, config);
     if (plan.kind !== "none") {

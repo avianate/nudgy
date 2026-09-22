@@ -182,7 +182,7 @@ export function reopenItem(db: Database, id: number, now: number): Item | null {
     .get({ id, now }) as Item | null;
 }
 
-export function snoozeItem(
+export function rescheduleItem(
   db: Database,
   id: number,
   remindAt: number,
