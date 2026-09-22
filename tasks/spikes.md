@@ -70,3 +70,29 @@
     screen was off.
 - **Cleanup:** the test items #1–4 were deleted and `config.json` was removed, so defaults
   apply. The daemon is left installed and running.
+
+## Swift notifier helper (2026-09-22)
+
+The human found the osascript banners unacceptable: they're attributed to Script Editor, and
+clicking one opens an empty Script Editor. **Decision:** a Swift helper app becomes the primary
+notifier, with osascript kept as a fallback. SPEC.md was updated to match.
+
+- **Build:** `swiftc -O` builds `src/notifier/main.swift` into
+  `Jot Notifier.app/Contents/MacOS/jot-notify`, alongside an `Info.plist` with
+  `CFBundleIdentifier` = `dev.jot.notifier`, name "Jot" and `LSUIElement`. The bundle is
+  ad-hoc signed. It uses the Xcode toolchain (Swift 6.4, macOS 27 SDK).
+- **Registration:** the first run, straight from the binary, returned "Notifications are not
+  allowed for this application" at once, with no prompt. **Running `lsregister -f <bundle>`
+  fixes it.** After that, `requestAuthorization` granted and the banner showed as **Jot**.
+- **Default settings:** the per-app defaults were "Temporary" style (banners) with previews
+  hidden, so the banner read "Notification". The human set Show previews to Always and the style
+  to Persistent. `doctor` should point at these settings.
+- **Text:** the title, a subtitle with `"` and `\`, and a body with `\backslash` and `"quotes"`
+  came through verbatim. They're passed as argv.
+- **Click:** clicking dismisses the banner, and nothing opens. A click relaunch has no args, so
+  the helper exits at once.
+- **Sound:** `UNNotificationSound(named: "Glass")` plays the system Glass sound. The human heard
+  it.
+- **Rebuild and re-sign:** after changing the binary and re-signing ad hoc (a new cdhash), the
+  helper stayed authorized and the banner appeared. **The permission survives rebuilds.**
+- **Still open:** being launched by the daemon under launchd is checked after integration.

@@ -548,6 +548,24 @@ absent.
 
 ---
 
+## Phase 4b: Native notifier (added 2026-09-22 at the human's request)
+
+### Task N1: SPIKE — Swift notifier helper
+Done. See `tasks/spikes.md`. The helper banners as "Jot", passes text verbatim, dismisses on
+click, plays sounds, and keeps permission across ad-hoc re-signs once registered with
+`lsregister`.
+
+### Task N2: Swift helper as the daemon's notifier
+**Acceptance criteria:**
+- [ ] `bun run build` produces `dist/Jot Notifier.app`, signed ad hoc and passing
+  `codesign --verify`. `install:local` installs it atomically to `~/.jot/Jot Notifier.app` and
+  runs `lsregister -f`.
+- [ ] The daemon and doctor use the helper when it's present. If it's missing, or a post fails
+  (for example not authorized), they log the error and fall back to osascript, so reminders
+  never go silent. `JOT_NOTIFIER=file:` still overrides both for tests.
+- [ ] `doctor` checks the helper and points at Notifications → Jot. Under launchd, a real
+  reminder banners as "Jot" (the human confirms).
+
 ## Phase 5: TUI
 
 ### Task 18: TUI shell — layout, tabs and navigation

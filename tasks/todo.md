@@ -34,6 +34,11 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 - [x] T17 `doctor` and `config`
 - [ ] **Checkpoint 4:** human confirms SC9 in a new zsh tab
 
+## Phase 4b: Native notifier (requested mid-build)
+- [x] N1 SPIKE: Swift notifier helper (see spikes.md)
+- [ ] N2 Swift helper as primary notifier, osascript fallback, doctor + install
+- [ ] **Checkpoint 4b:** human confirms a launchd-fired banner shows as "Jot"
+
 ## Phase 5: TUI (parallel with Phase 4 once T15 is done)
 - [ ] T18 TUI shell: two panes, tabs, nav, Markdown detail, `q`
 - [ ] T19 TUI actions: `d` `s` `x` `r` `a`

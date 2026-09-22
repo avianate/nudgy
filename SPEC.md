@@ -30,8 +30,8 @@ are hard to miss, and nothing requires leaving the terminal except the banner it
 
 ### Out of scope (v1)
 
-Apple Reminders / EventKit, iCloud or any sync, a Swift helper, any GUI, clickable or
-actionable notifications, Homebrew dependencies (including `alerter` and
+Apple Reminders / EventKit, iCloud or any sync, any Swift beyond the notifier helper, any GUI,
+clickable or actionable notifications, Homebrew dependencies (including `alerter` and
 `terminal-notifier`), non-zsh shells, Intel builds, distribution/packaging, tags
 (repo/branch context replaces them for v1), attachments.
 
@@ -44,7 +44,7 @@ actionable notifications, Homebrew dependencies (including `alerter` and
 | Date parsing | `chrono-node` ^2.10 | One-shot times and the time part of recurrence rules only |
 | TUI | `@opentui/core` + `@opentui/react` **pinned exactly** (0.5.12) + `react` ^19.2 | Pre-1.0 — upgrades are deliberate |
 | Background | launchd LaunchAgent running `jot daemon run` | `KeepAlive`, `RunAtLoad` |
-| Notifications | `/usr/bin/osascript` `display notification` | Built into macOS; no Homebrew |
+| Notifications | `Jot Notifier.app`: a Swift helper (`UNUserNotificationCenter`) built with the Xcode toolchain; `osascript display notification` as fallback | Banners show as "Jot"; clicking dismisses. No Homebrew |
 | Lint / format | Biome ^2.5 | |
 | Tests | `bun test` | |
 
@@ -168,12 +168,14 @@ daemon hook doctor config help`. To capture one of these words literally, use
 ### doctor
 
 Checks and reports: binary at `~/.local/bin/jot` and on `PATH`; valid code signature;
+`~/.jot/Jot Notifier.app` present and validly signed (otherwise banners fall back to osascript);
 LaunchAgent loaded and ticking; database opens and migrations are current; `$EDITOR` set.
 
-Then it sends a test banner and **asks the user whether it appeared**. `osascript
-display notification` exits 0 even when Script Editor's notifications are disabled, so
-permission cannot be detected, only confirmed by the user. If the answer is no, it prints
-the fix: System Settings → Notifications → Script Editor → Allow.
+Then it sends a test banner and **asks the user whether it appeared**. The helper reports a
+refused authorization, but a banner can still be hidden by Focus or preview settings (and the
+osascript fallback exits 0 even when blocked), so delivery is only confirmed by the user. If the
+answer is no, it prints the fix: System Settings → Notifications → Jot → Allow, Show previews:
+Always (or → Script Editor for the fallback).
 
 ### Config (`~/.jot/config.json`)
 
@@ -204,8 +206,8 @@ bun test                       # all tests
 bun test --coverage
 bun run typecheck              # tsc --noEmit
 bun run check                  # biome check --write .
-bun run build                  # scripts/build.ts: compile → dist/jot, then codesign -s - -f dist/jot
-bun run install:local          # build, atomically install to ~/.local/bin/jot, kickstart the daemon if loaded
+bun run build                  # scripts/build.ts: compile → dist/jot, codesign; swiftc → dist/Jot Notifier.app, codesign
+bun run install:local          # build, atomically install jot and ~/.jot/Jot Notifier.app (lsregister), kickstart the daemon if loaded
 ```
 
 **`install:local` must replace the binary atomically.** Copy to
@@ -255,10 +257,11 @@ src/
     config.ts, paths.ts, clock.ts
   daemon/
     loop.ts          tick: query → alerts.plan → notifier → write status
-    notifier.ts      Notifier interface + osascript implementation
+    notifier.ts      Notifier interface: Swift helper, osascript fallback, file fake
     launchd.ts       plist generation + Launchctl interface
   tui/               OpenTUI React app and components
   shell/hook.zsh     hook template
+  notifier/          Swift helper: main.swift + Info.plist → Jot Notifier.app
 scripts/build.ts
 *.test.ts            colocated next to the module under test
 test/cli/            end-to-end CLI tests
@@ -333,12 +336,13 @@ export function osascriptNotifier(sound: string): Notifier {
   - Adding or upgrading any dependency, **especially OpenTUI**.
   - Changing the DB schema once real data exists.
   - Changing the data directory, LaunchAgent label or install path.
-  - Anything that would touch files outside `~/.jot`, `~/.local/bin/jot` and the plist.
+  - Anything that would touch files outside `~/.jot` (which includes `~/.jot/Jot Notifier.app`),
+    `~/.local/bin/jot` and the plist.
 - **Never:**
   - Make network calls.
   - Edit `~/.zshrc` or any dotfile.
   - Delete or recreate `jot.db` to "fix" a migration.
-  - Add Homebrew, Swift or native-helper dependencies.
+  - Add Homebrew dependencies, or native code other than the Swift notifier helper.
   - Spawn a process from the prompt segment.
   - Show a real notification from a test.
 
