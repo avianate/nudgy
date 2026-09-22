@@ -122,3 +122,24 @@ export function StatusLine({ text }: { text: string }) {
 
 export const HINTS =
   "j/k move · tab switch · / search · a add · e edit · r remind · s snooze · d done · x delete · h here · ? help · q quit";
+
+export function Prompt({
+  label,
+  onSubmit,
+}: {
+  label: string;
+  onSubmit(text: string): void;
+}) {
+  return (
+    <box flexDirection="row" height={1}>
+      <text fg={ACCENT}>{`${label} `}</text>
+      <input
+        focused
+        flexGrow={1}
+        onSubmit={(value: unknown) =>
+          onSubmit(typeof value === "string" ? value : "")
+        }
+      />
+    </box>
+  );
+}

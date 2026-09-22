@@ -41,7 +41,7 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 
 ## Phase 5: TUI (parallel with Phase 4 once T15 is done)
 - [x] T18 TUI shell: two panes, tabs, nav, Markdown detail, `q`
-- [ ] T19 TUI actions: `d` `s` `x` `r` `a`
+- [x] T19 TUI actions: `d` `s` `x` `r` `a`
 - [ ] T20 TUI `/` search, `h` repo filter, `?` help, 30s refresh
 - [ ] T21 TUI `e` editor round-trip
 - [ ] **Checkpoint 5:** SC1–SC12 all checked; human confirms SC10; manual checklist done

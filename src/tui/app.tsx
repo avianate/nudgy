@@ -1,7 +1,9 @@
 import { useFocus, useKeyboard, useTerminalDimensions } from "@opentui/react";
 import { useEffect, useMemo, useState } from "react";
+import { absolute, relative } from "../cli/format";
+import { title } from "../core/items";
 import { type Store, TABS, type Tab } from "./store";
-import { Detail, HINTS, ItemRow, StatusLine, TabsLine } from "./views";
+import { Detail, HINTS, ItemRow, Prompt, StatusLine, TabsLine } from "./views";
 
 export type AppProps = {
   store: Store;
@@ -10,7 +12,12 @@ export type AppProps = {
   onQuit(): void;
 };
 
-type Mode = { kind: "normal" };
+// Exactly one handler sees each key, so typing into a prompt can never trigger a shortcut
+type Mode =
+  | { kind: "normal" }
+  | { kind: "add" }
+  | { kind: "remind"; id: number }
+  | { kind: "confirm-delete"; id: number };
 
 type Selection = { id: number | null; index: number };
 
@@ -22,8 +29,8 @@ export function App({ store, refreshMs = 30_000, onQuit }: AppProps) {
   const [tab, setTab] = useState<Tab>("due");
   const [version, setVersion] = useState(0);
   const [selection, setSelection] = useState<Selection>({ id: null, index: 0 });
-  const [mode] = useState<Mode>({ kind: "normal" });
-  const [status] = useState("");
+  const [mode, setMode] = useState<Mode>({ kind: "normal" });
+  const [status, setStatus] = useState("");
 
   const reload = () => setVersion((v) => v + 1);
   // biome-ignore lint/correctness/useExhaustiveDependencies: version is the reload trigger
@@ -61,9 +68,24 @@ export function App({ store, refreshMs = 30_000, onQuit }: AppProps) {
     setSelection({ id: null, index: 0 });
   };
 
-  useKeyboard((key) => {
-    if (mode.kind !== "normal") return;
-    switch (key.name) {
+  // Store errors (bad reminder text, invalid config) surface on the status line; nothing may throw out of a handler
+  const attempt = (action: () => string) => {
+    try {
+      setStatus(action());
+    } catch (e) {
+      setStatus(`✗ ${(e as Error).message.split(";")[0]}`);
+    }
+    setMode({ kind: "normal" });
+    reload();
+  };
+
+  const describeNext = (remindAt: number | null) =>
+    remindAt === null
+      ? ""
+      : `${absolute(remindAt)} (${relative(remindAt, store.now())})`;
+
+  const onNormalKey = (name: string, shift: boolean) => {
+    switch (name) {
       case "q":
         onQuit();
         return;
@@ -76,15 +98,85 @@ export function App({ store, refreshMs = 30_000, onQuit }: AppProps) {
         moveTo(index - 1);
         return;
       case "tab":
-        switchTab(key.shift ? -1 : 1);
+        switchTab(shift ? -1 : 1);
+        return;
+      case "a":
+        setMode({ kind: "add" });
         return;
     }
+    if (!selected) return;
+    const id = selected.id;
+    switch (name) {
+      case "d":
+        attempt(() => {
+          const updated = store.complete(id);
+          return updated && updated.doneAt === null
+            ? `#${id} next: ${describeNext(updated.remindAt)}`
+            : `done #${id}`;
+        });
+        return;
+      case "s":
+        attempt(
+          () =>
+            `snoozed #${id} until ${describeNext(store.snooze(id)?.remindAt ?? null)}`,
+        );
+        return;
+      case "r":
+        setMode({ kind: "remind", id });
+        return;
+      case "x":
+        setMode({ kind: "confirm-delete", id });
+        return;
+    }
+  };
+
+  useKeyboard((key) => {
+    if (mode.kind === "normal") {
+      onNormalKey(key.name, key.shift);
+      return;
+    }
+    if (key.name === "escape") {
+      setMode({ kind: "normal" });
+      setStatus("");
+      return;
+    }
+    if (mode.kind === "confirm-delete") {
+      if (key.name === "y") {
+        attempt(() => {
+          store.remove(mode.id);
+          return `deleted #${mode.id}`;
+        });
+      } else {
+        setMode({ kind: "normal" });
+        setStatus("not deleted");
+      }
+    }
   });
+
+  const submitAdd = (text: string) => {
+    if (!text.trim()) return setMode({ kind: "normal" });
+    attempt(() => {
+      const item = store.add(text.trim());
+      setSelection({ id: item.id, index: 0 });
+      return `added #${item.id}`;
+    });
+  };
+  const submitRemind = (id: number, text: string) => {
+    if (!text.trim()) return setMode({ kind: "normal" });
+    attempt(
+      () =>
+        `#${id} reminds ${describeNext(store.remind(id, text)?.remindAt ?? null)}`,
+    );
+  };
 
   const listWidth = Math.floor(width / 2) - 5;
   const rows = Math.max(1, height - 5);
   const start = Math.max(0, index - rows + 1);
   const visible = items.slice(start, start + rows);
+  const target =
+    mode.kind === "remind" || mode.kind === "confirm-delete"
+      ? store.get(mode.id)
+      : null;
 
   return (
     <box flexDirection="column" width="100%" height="100%">
@@ -127,7 +219,20 @@ export function App({ store, refreshMs = 30_000, onQuit }: AppProps) {
           )}
         </box>
       </box>
-      <StatusLine text={status || HINTS} />
+      {mode.kind === "add" ? (
+        <Prompt label="New note:" onSubmit={submitAdd} />
+      ) : mode.kind === "remind" ? (
+        <Prompt
+          label={`Remind #${mode.id} (in 2h, fri 4pm, every weekday 9am, clear):`}
+          onSubmit={(text) => submitRemind(mode.id, text)}
+        />
+      ) : mode.kind === "confirm-delete" ? (
+        <StatusLine
+          text={`Delete #${mode.id} "${target ? title(target.body) : ""}"? y/N`}
+        />
+      ) : (
+        <StatusLine text={status || HINTS} />
+      )}
     </box>
   );
 }

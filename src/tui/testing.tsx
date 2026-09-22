@@ -91,7 +91,11 @@ export async function renderApp(
     tab: (shift = false) => step(() => keys.pressTab({ shift })),
     type: (text: string) => step(() => keys.typeText(text)),
     enter: () => step(() => keys.pressEnter()),
-    escape: () => step(() => keys.pressEscape()),
+    // ESC followed at once by a key is how terminals spell Alt+key; a real press has a gap
+    escape: async () => {
+      await step(() => keys.pressEscape());
+      await step(() => Bun.sleep(60));
+    },
     step,
     quit: () => quit,
     destroy: () => act(async () => t.renderer.destroy()),
