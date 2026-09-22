@@ -130,7 +130,7 @@ test("the helper gets title, subtitle, body and sound as separate argv entries",
 
 test("a helper that is not authorized fails with the settings to fix", async () => {
   const { exe } = fakeHelper(tempHome(), 3);
-  expect(helperNotifier(exe).notify(note)).rejects.toThrow(
+  await expect(helperNotifier(exe).notify(note)).rejects.toThrow(
     /Notifications → Jot/,
   );
 });

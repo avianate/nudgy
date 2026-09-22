@@ -717,5 +717,14 @@ same item.
 - `due` with nothing due prints "nothing due" on stderr and leaves stdout empty. The hook discards stderr.
 - Day views (`today` and friends) include done items. They sort as a chronological agenda: a reminder due that day by its due time, anything else by creation time.
 - Usage errors exit 2. Runtime errors such as "no item #N" or "not in a repo" exit 1.
+- `every day` is stored as a weekly rule covering all seven days, so there's one code path for
+  day-based rules.
+- `Jot Notifier.app` always lives in `~/.jot`, even when `JOT_HOME` points elsewhere. Notification
+  permission belongs to that one bundle.
+- The helper waits up to 60s for Notification Center, which allows time to answer the first
+  permission prompt. That wait also bounds a daemon tick in the worst case.
+- `JOT_NOTIFIER=osascript` forces the fallback notifier.
+- The TUI `r` prompt accepts `clear` to remove a reminder. The TUI `a` prompt takes plain text
+  only, with no `-r`. Set a reminder afterwards with `r`.
 - `bun <file>` strips the first `--`. The e2e helper prepends one, and `JOT_E2E_BIN=dist/jot`
   (`bun run test:bin`) runs the e2e suite against the compiled binary.
