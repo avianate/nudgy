@@ -7,6 +7,8 @@ type Command = { run(parsed: Parsed, ctx: Context): number | Promise<number> };
 
 const COMMANDS: Partial<Record<Reserved, () => Promise<Command>>> = {
   add: () => import("./cli/add"),
+  ls: () => import("./cli/ls"),
+  show: () => import("./cli/show"),
 };
 
 async function main(argv: string[]): Promise<number> {

@@ -50,3 +50,25 @@ export function getItem(db: Database, id: number): Item | null {
     .query(`SELECT ${COLUMNS} FROM items WHERE id = $id`)
     .get({ id }) as Item | null;
 }
+
+export type ListFilter = {
+  repo?: string;
+  done?: boolean;
+  remindersOnly?: boolean;
+};
+
+export function listItems(db: Database, filter: ListFilter = {}): Item[] {
+  return db
+    .query(
+      `SELECT ${COLUMNS} FROM items
+       WHERE (done_at IS NOT NULL) = $done
+         AND ($repo IS NULL OR repo = $repo)
+         AND ($remindersOnly = 0 OR remind_at IS NOT NULL)
+       ORDER BY created_at DESC, id DESC`,
+    )
+    .all({
+      done: filter.done ? 1 : 0,
+      repo: filter.repo ?? null,
+      remindersOnly: filter.remindersOnly ? 1 : 0,
+    }) as Item[];
+}

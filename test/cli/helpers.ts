@@ -33,7 +33,14 @@ export function jotHome(): { home: string; jot: Jot } {
     // `bun <file>` swallows the first `--`; the compiled binary does not, so pass one for bun to eat
     const proc = Bun.spawnSync(["bun", MAIN, "--", ...args], {
       cwd: opts.cwd ?? home,
-      env: { ...process.env, JOT_HOME: home, EDITOR: "false", ...opts.env },
+      env: {
+        ...process.env,
+        // A TZ assigned at runtime in the preload does not reach child processes
+        TZ: "America/New_York",
+        JOT_HOME: home,
+        EDITOR: "false",
+        ...opts.env,
+      },
       stdin: opts.stdin === undefined ? "ignore" : Buffer.from(opts.stdin),
       stdout: "pipe",
       stderr: "pipe",

@@ -11,7 +11,7 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 ## Phase 1: Capture, list, search
 - [x] T4 Storage core: db, pragmas, migration v1, FTS triggers, `createItem`/`getItem`
 - [x] T5 Capture: `jot "…"` / `add` / `--`, reserved words, git context, <100ms bench
-- [ ] T6 `ls` (`--here --done --reminders --json`) and `show`
+- [x] T6 `ls` (`--here --done --reminders --json`) and `show`
 - [ ] T7 `edit`, `rm [-y]`, `search` with safe FTS query builder
 - [ ] **Checkpoint 1:** gates green, core coverage ≥ 90%, human uses it in a repo
 
