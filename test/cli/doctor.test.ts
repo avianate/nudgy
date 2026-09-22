@@ -29,6 +29,7 @@ test("doctor reports each check and sends a test banner through the notifier", (
     "binary",
     "on PATH",
     "signature",
+    "notifier",
     "daemon",
     "database",
     "config",
@@ -59,14 +60,22 @@ test("an unset $EDITOR is only a warning", () => {
   expect(result.stdout).not.toMatch(/✗ \$EDITOR/);
 });
 
-test("answering no to the banner prints the Script Editor fix", () => {
+test("answering no to the banner prints the notification settings fix", () => {
   const { jot } = setup();
   const result = jot(["doctor"], { stdin: "n\n" });
   expect(result.code).toBe(1);
   expect(result.stdout).toContain(
-    "System Settings → Notifications → Script Editor → Allow",
+    "System Settings → Notifications → Jot → Allow notifications",
   );
+  expect(result.stdout).toContain("Script Editor → Allow");
   expect(result.stdout).toContain("Notification Center");
+});
+
+test("doctor reports a missing notifier helper as falling back to osascript", () => {
+  const { jot } = setup();
+  expect(jot(["doctor"], { stdin: "y\n" }).stdout).toMatch(
+    /✗ notifier\s+.*fall back to osascript/,
+  );
 });
 
 test("an invalid config is reported by doctor", () => {

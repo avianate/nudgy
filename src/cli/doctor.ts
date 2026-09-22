@@ -83,6 +83,27 @@ async function runChecks(ctx: Context): Promise<Check[]> {
     });
   }
 
+  if (existsSync(paths.notifier)) {
+    const sig = Bun.spawnSync(
+      ["/usr/bin/codesign", "--verify", paths.notifierApp],
+      { stderr: "pipe" },
+    );
+    checks.push({
+      label: "notifier",
+      ok: sig.exitCode === 0,
+      detail:
+        sig.exitCode === 0
+          ? paths.notifierApp
+          : `invalid signature: ${sig.stderr.toString().trim()}`,
+    });
+  } else {
+    checks.push({
+      label: "notifier",
+      ok: false,
+      detail: `${paths.notifierApp} missing; banners fall back to osascript (Script Editor). Run bun run install:local`,
+    });
+  }
+
   const { loaded, pid } = await launchctlFromEnv(env).print();
   const lastTick = existsSync(paths.status)
     ? statSync(paths.status).mtimeMs
@@ -144,20 +165,25 @@ export async function run(_: Parsed, ctx: Context): Promise<number> {
   try {
     sound = loadConfig(ctx.paths.config).sound;
   } catch {}
-  await notifierFromEnv(ctx.env).notify({
+  const failures: string[] = [];
+  await notifierFromEnv(ctx.env, ctx.paths, (m) => failures.push(m)).notify({
     title: "jot doctor",
     subtitle: "",
     body: "If you can see this, notifications work.",
     sound,
   });
-  // osascript exits 0 even when notifications are blocked, so only the user can confirm this one
+  for (const f of failures) ctx.out(`✗ helper     ${f}`);
+  // Focus, preview settings or the osascript fallback can hide a banner without any error, so only the user can confirm it
   const seen = await confirm(
     "Sent a test banner. Did a banner appear (check Notification Center too)?",
   );
   if (!seen) {
     ctx.out("✗ banner     not confirmed");
     ctx.out(
-      "  Fix: System Settings → Notifications → Script Editor → Allow, with Banners or Alerts.",
+      "  Fix: System Settings → Notifications → Jot → Allow notifications, Show previews: Always.",
+    );
+    ctx.out(
+      "  (osascript fallback: System Settings → Notifications → Script Editor → Allow.)",
     );
     ctx.out(
       "  If it only shows in Notification Center, the screen may have been off or Focus is on.",

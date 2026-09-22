@@ -1,6 +1,6 @@
-import { appendFileSync } from "node:fs";
+import { appendFileSync, existsSync } from "node:fs";
 import type { Banner } from "../core/alerts";
-import type { Env } from "../core/paths";
+import type { Env, Paths } from "../core/paths";
 
 export type Notification = Banner & { sound: string };
 
@@ -44,10 +44,63 @@ export function fileNotifier(path: string): Notifier {
   };
 }
 
-export function notifierFromEnv(env: Env): Notifier {
+export const HELPER_NOT_AUTHORIZED = 3;
+
+export function helperNotifier(executable: string): Notifier {
+  return {
+    kind: "helper",
+    async notify({ title, subtitle, body, sound }) {
+      const proc = Bun.spawn([executable, title, subtitle, body, sound], {
+        stdout: "ignore",
+        stderr: "pipe",
+      });
+      const code = await proc.exited;
+      if (code === 0) return;
+      const detail = (await new Response(proc.stderr).text()).trim();
+      if (code === HELPER_NOT_AUTHORIZED) {
+        throw new Error(
+          `Jot is not allowed to notify (System Settings → Notifications → Jot): ${detail}`,
+        );
+      }
+      throw new Error(`jot-notify exited ${code}: ${detail}`);
+    },
+  };
+}
+
+// Reminders must never go silent: if the helper is broken or refused, fall back and say why
+export function withFallback(
+  primary: Notifier,
+  fallback: Notifier,
+  log: (message: string) => void,
+): Notifier {
+  return {
+    kind: `${primary.kind}+${fallback.kind}`,
+    async notify(n) {
+      try {
+        await primary.notify(n);
+      } catch (e) {
+        log(
+          `${primary.kind} notifier failed, using ${fallback.kind}: ${(e as Error).message}`,
+        );
+        await fallback.notify(n);
+      }
+    },
+  };
+}
+
+export function notifierFromEnv(
+  env: Env,
+  paths: Paths,
+  log: (message: string) => void = () => {},
+): Notifier {
   const spec = env.JOT_NOTIFIER;
-  if (spec === undefined) return osascriptNotifier;
-  if (spec.startsWith("file:") && spec.length > 5)
+  if (spec?.startsWith("file:") && spec.length > 5)
     return fileNotifier(spec.slice(5));
-  throw new Error(`JOT_NOTIFIER must be file:<path>, got "${spec}"`);
+  if (spec === "osascript") return osascriptNotifier;
+  if (spec !== undefined)
+    throw new Error(
+      `JOT_NOTIFIER must be file:<path> or osascript, got "${spec}"`,
+    );
+  if (!existsSync(paths.notifier)) return osascriptNotifier;
+  return withFallback(helperNotifier(paths.notifier), osascriptNotifier, log);
 }

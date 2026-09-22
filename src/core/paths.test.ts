@@ -11,6 +11,8 @@ test("JOT_HOME overrides the data directory", () => {
     status: "/tmp/jh/status",
     bin: "/Users/dev/.local/bin/jot",
     launchAgent: "/Users/dev/Library/LaunchAgents/dev.jot.daemon.plist",
+    notifierApp: "/Users/dev/.jot/Jot Notifier.app",
+    notifier: "/Users/dev/.jot/Jot Notifier.app/Contents/MacOS/jot-notify",
   });
 });
 

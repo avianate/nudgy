@@ -29,12 +29,14 @@ export async function run(parsed: Parsed, ctx: Context): Promise<number> {
 }
 
 async function runDaemon({ flags }: Parsed, ctx: Context): Promise<number> {
+  const log = (message: string) =>
+    ctx.err(`${new Date().toISOString()} ${message}`);
   const deps: TickDeps = {
     db: ctx.db,
     clock: ctx.clock,
-    notifier: notifierFromEnv(ctx.env),
+    notifier: notifierFromEnv(ctx.env, ctx.paths, log),
     paths: ctx.paths,
-    log: (message) => ctx.err(`${new Date().toISOString()} ${message}`),
+    log,
   };
   if (flags.once) {
     await tick(deps);
@@ -43,7 +45,9 @@ async function runDaemon({ flags }: Parsed, ctx: Context): Promise<number> {
   const controller = new AbortController();
   for (const signal of ["SIGTERM", "SIGINT"] as const)
     process.on(signal, () => controller.abort());
-  deps.log(`daemon started (pid ${process.pid})`);
+  deps.log(
+    `daemon started (pid ${process.pid}, notifier ${deps.notifier.kind})`,
+  );
   await runLoop(deps, controller.signal);
   deps.log("daemon stopped");
   return 0;
