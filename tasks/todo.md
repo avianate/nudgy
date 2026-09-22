@@ -24,7 +24,7 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 - [ ] **Checkpoint 2:** human confirms SC2, SC3, SC4, SC11; Script Editor attribution OK
 
 ## Phase 3: Recurrence
-- [ ] T13 Recurrence grammar parser plus rejection
+- [x] T13 Recurrence grammar parser plus rejection
 - [ ] T14 `nextOccurrence` / `rollForward` (DST, month ends, missed occurrences)
 - [ ] T15 Wire recurrence into capture, remind, done, daemon tick, display
 - [ ] **Checkpoint 3:** gates green; human sees a real weekday reminder fire
