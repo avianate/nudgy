@@ -2,7 +2,7 @@ import * as chrono from "chrono-node";
 import { InputError } from "./errors";
 
 export type Rule =
-  | { kind: "weekly"; days: number[]; time: string }
+  | { kind: "weekly"; days: readonly number[]; time: string }
   | { kind: "days"; every: number; time: string; start: string }
   | { kind: "interval"; hours: number; anchor: number };
 
@@ -116,4 +116,91 @@ export function parseRecurrence(input: string, now: number): Rule {
     (n) => DAY_NAMES[n] ?? reject(input, `"${n}" is not a day`),
   );
   return { kind: "weekly", days: [...new Set(nums)].sort(), time };
+}
+
+const HOUR = 3_600_000;
+
+function addDays(ms: number, n: number): number {
+  const d = new Date(ms);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n).getTime();
+}
+
+function midnight(ms: number): number {
+  return addDays(ms, 0);
+}
+
+function parseLocalDate(s: string): number {
+  const [y, m, d] = s.split("-").map(Number) as [number, number, number];
+  return new Date(y, m - 1, d).getTime();
+}
+
+// Calendar days between two local midnights; rounding absorbs 23/25-hour DST days
+function daysBetween(fromMidnight: number, toMidnight: number): number {
+  return Math.round((toMidnight - fromMidnight) / (24 * HOUR));
+}
+
+export function nextOccurrence(rule: Rule, after: number): number {
+  switch (rule.kind) {
+    case "weekly": {
+      for (let i = 0; i <= 7; i++) {
+        const day = addDays(after, i);
+        const t = atTime(day, rule.time).getTime();
+        if (rule.days.includes(new Date(day).getDay()) && t > after) return t;
+      }
+      throw new Error(`weekly rule with no days: ${JSON.stringify(rule)}`);
+    }
+    case "days": {
+      const start = parseLocalDate(rule.start);
+      const k = Math.max(
+        0,
+        Math.floor(daysBetween(start, midnight(after)) / rule.every),
+      );
+      for (let j = k; ; j++) {
+        const t = atTime(addDays(start, j * rule.every), rule.time).getTime();
+        if (t > after) return t;
+      }
+    }
+    case "interval": {
+      const step = rule.hours * HOUR;
+      const k = Math.max(1, Math.floor((after - rule.anchor) / step) + 1);
+      return rule.anchor + k * step;
+    }
+  }
+}
+
+export function previousOccurrence(
+  rule: Rule,
+  atOrBefore: number,
+): number | null {
+  switch (rule.kind) {
+    case "weekly": {
+      for (let i = 0; i <= 7; i++) {
+        const day = addDays(atOrBefore, -i);
+        const t = atTime(day, rule.time).getTime();
+        if (rule.days.includes(new Date(day).getDay()) && t <= atOrBefore)
+          return t;
+      }
+      return null;
+    }
+    case "days": {
+      const start = parseLocalDate(rule.start);
+      const diff = daysBetween(start, midnight(atOrBefore));
+      for (let j = Math.floor(diff / rule.every); j >= 0; j--) {
+        const t = atTime(addDays(start, j * rule.every), rule.time).getTime();
+        if (t <= atOrBefore) return t;
+      }
+      return null;
+    }
+    case "interval": {
+      const step = rule.hours * HOUR;
+      const k = Math.floor((atOrBefore - rule.anchor) / step);
+      return k >= 1 ? rule.anchor + k * step : null;
+    }
+  }
+}
+
+// One outstanding instance: an unacknowledged reminder jumps to the latest occurrence, never stacks
+export function rollForward(rule: Rule, remindAt: number, now: number): number {
+  const latest = previousOccurrence(rule, now);
+  return latest !== null && latest > remindAt ? latest : remindAt;
 }

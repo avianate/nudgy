@@ -25,7 +25,7 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 
 ## Phase 3: Recurrence
 - [x] T13 Recurrence grammar parser plus rejection
-- [ ] T14 `nextOccurrence` / `rollForward` (DST, month ends, missed occurrences)
+- [x] T14 `nextOccurrence` / `rollForward` (DST, month ends, missed occurrences)
 - [ ] T15 Wire recurrence into capture, remind, done, daemon tick, display
 - [ ] **Checkpoint 3:** gates green; human sees a real weekday reminder fire
 
