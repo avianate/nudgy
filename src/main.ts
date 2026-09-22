@@ -34,7 +34,17 @@ async function main(argv: string[]): Promise<number> {
       console.log(pkg.version);
       return 0;
     }
-    if (parsed.command === "help" || parsed.command === "tui") {
+    if (parsed.command === "tui") {
+      if (!process.stdin.isTTY || !process.stdout.isTTY) {
+        throw new UsageError(
+          'the TUI needs a terminal; to capture, use jot "<text>" (see jot --help)',
+        );
+      }
+      const { createContext } = await import("./cli/context");
+      const { runTui } = await import("./tui/run");
+      return await runTui(createContext(process.env, process.cwd()));
+    }
+    if (parsed.command === "help") {
       const { USAGE } = await import("./cli/help");
       console.log(USAGE);
       return 0;

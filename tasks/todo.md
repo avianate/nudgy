@@ -40,7 +40,7 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 - [x] **Checkpoint 4b:** human confirmed a launchd-fired banner shows as "Jot" (icon still blank)
 
 ## Phase 5: TUI (parallel with Phase 4 once T15 is done)
-- [ ] T18 TUI shell: two panes, tabs, nav, Markdown detail, `q`
+- [x] T18 TUI shell: two panes, tabs, nav, Markdown detail, `q`
 - [ ] T19 TUI actions: `d` `s` `x` `r` `a`
 - [ ] T20 TUI `/` search, `h` repo filter, `?` help, 30s refresh
 - [ ] T21 TUI `e` editor round-trip

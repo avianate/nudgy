@@ -64,3 +64,9 @@ test("--help prints usage listing the commands", () => {
   expect(result.stdout).toContain("jot search <query>");
   expect(result.stdout).not.toContain("--within");
 });
+
+test("bare jot without a terminal refuses to start the TUI", () => {
+  const result = jotHome().jot([]);
+  expect(result.code).toBe(2);
+  expect(result.stderr).toContain("needs a terminal");
+});
