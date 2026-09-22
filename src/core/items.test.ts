@@ -6,8 +6,11 @@ import {
   deleteItem,
   getItem,
   listItems,
+  markDone,
+  reopenItem,
   searchItems,
   setReminder,
+  snoozeItem,
   updateBody,
 } from "./items";
 
@@ -225,6 +228,46 @@ describe("reminders", () => {
       recurrenceText: null,
       lastAlertedAt: null,
       doneAt: 12,
+    });
+  });
+});
+
+describe("done, reopen, snooze", () => {
+  function withReminder() {
+    const db = openDb(":memory:");
+    createItem(db, { body: "x", repo: null, branch: null, remindAt: 10 }, 1);
+    db.run("UPDATE items SET last_alerted_at = 11 WHERE id = 1");
+    return db;
+  }
+
+  test("markDone sets done_at", () => {
+    expect(markDone(withReminder(), 1, 20)).toMatchObject({
+      doneAt: 20,
+      remindAt: 10,
+      updatedAt: 20,
+    });
+  });
+
+  test("reopen clears done_at and alert state", () => {
+    const db = withReminder();
+    markDone(db, 1, 20);
+    expect(reopenItem(db, 1, 30)).toMatchObject({
+      doneAt: null,
+      lastAlertedAt: null,
+      updatedAt: 30,
+    });
+  });
+
+  test("snooze moves remind_at, clears last_alerted_at and keeps any recurrence", () => {
+    const db = withReminder();
+    db.run(
+      `UPDATE items SET recurrence = '{"kind":"daily"}', recurrence_text = 'every day' WHERE id = 1`,
+    );
+    expect(snoozeItem(db, 1, 900, 20)).toMatchObject({
+      remindAt: 900,
+      lastAlertedAt: null,
+      recurrence: '{"kind":"daily"}',
+      recurrenceText: "every day",
     });
   });
 });

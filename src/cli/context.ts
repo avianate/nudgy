@@ -1,5 +1,6 @@
 import type { Database } from "bun:sqlite";
 import { type Clock, clockFromEnv } from "../core/clock";
+import { type Config, loadConfig } from "../core/config";
 import { openDb } from "../core/db";
 import { type Git, gitContext } from "../core/git";
 import { type Env, type Paths, resolvePaths } from "../core/paths";
@@ -13,6 +14,7 @@ export type Context = {
   out(text: string): void;
   err(text: string): void;
   db(): Database;
+  config(): Config;
 };
 
 export function createContext(env: Env, cwd: string): Context {
@@ -30,5 +32,6 @@ export function createContext(env: Env, cwd: string): Context {
       db ??= openDb(paths.db);
       return db;
     },
+    config: () => loadConfig(paths.config),
   };
 }

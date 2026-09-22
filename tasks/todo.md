@@ -17,7 +17,7 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 
 ## Phase 2: One-shot reminders and daemon
 - [x] T8 `when.ts`, `-r` on capture, `remind` / `remind --clear` (one-shot only)
-- [ ] T9 `config.ts`, `done`, `reopen`, `snooze`
+- [x] T9 `config.ts`, `done`, `reopen`, `snooze`
 - [ ] T10 `due`, `today` / `yesterday` / `tomorrow`
 - [ ] T11 `alerts.plan`, osascript notifier plus fake seam, `daemon run` tick plus status file
 - [ ] T12 plist, launchctl seam, `daemon install` / `uninstall` / `status`

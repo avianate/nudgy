@@ -153,3 +153,33 @@ export function clearReminder(
     )
     .get({ id, now }) as Item | null;
 }
+
+export function markDone(db: Database, id: number, now: number): Item | null {
+  return db
+    .query(
+      `UPDATE items SET done_at = $now, updated_at = $now WHERE id = $id RETURNING ${COLUMNS}`,
+    )
+    .get({ id, now }) as Item | null;
+}
+
+export function reopenItem(db: Database, id: number, now: number): Item | null {
+  return db
+    .query(
+      `UPDATE items SET done_at = NULL, last_alerted_at = NULL, updated_at = $now WHERE id = $id RETURNING ${COLUMNS}`,
+    )
+    .get({ id, now }) as Item | null;
+}
+
+export function snoozeItem(
+  db: Database,
+  id: number,
+  remindAt: number,
+  now: number,
+): Item | null {
+  return db
+    .query(
+      `UPDATE items SET remind_at = $remindAt, last_alerted_at = NULL, updated_at = $now
+       WHERE id = $id RETURNING ${COLUMNS}`,
+    )
+    .get({ id, remindAt, now }) as Item | null;
+}
