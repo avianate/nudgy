@@ -9,7 +9,8 @@
     "check": "biome check --write .",
     "build": "bun scripts/build.ts",
     "install:local": "bun scripts/build.ts && bun scripts/installLocal.ts",
-    "coverage:core": "bun scripts/coverageCore.ts"
+    "coverage:core": "bun scripts/coverageCore.ts",
+    "test:bin": "bun scripts/build.ts && JOT_E2E_BIN=dist/jot bun test test/cli"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5",

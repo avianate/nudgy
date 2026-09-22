@@ -685,3 +685,16 @@ same item.
 6. **Spike code** is deleted after Checkpoint 0.
 7. **Hook window.** There's a hidden `jot due --within <hours>` flag, left out of the help text.
    The hook calls it with `hookWindowHours`.
+
+### Implementation judgement calls (made during build, open to overturn)
+
+- `ls --done` lists **only** completed items, matching the TUI's Done tab. It doesn't mix them
+  in with open items.
+- A detached HEAD, or a repo with no commits, stores `branch = null` rather than the literal
+  `HEAD`.
+- `--json` emits times as ISO 8601 strings. The database stores epoch ms.
+- `rm` exits 1 when the confirmation is declined or unanswered, including when there's no stdin.
+- `search` includes done items, which are marked ✓ in the list.
+- Usage errors exit 2. Runtime errors such as "no item #N" or "not in a repo" exit 1.
+- `bun <file>` strips the first `--`. The e2e helper prepends one, and `JOT_E2E_BIN=dist/jot`
+  (`bun run test:bin`) runs the e2e suite against the compiled binary.

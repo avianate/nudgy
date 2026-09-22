@@ -4,6 +4,9 @@ import { join, resolve } from "node:path";
 
 const MAIN = resolve(import.meta.dir, "../../src/main.ts");
 
+// JOT_E2E_BIN=dist/jot runs the suite against the compiled binary instead of the source
+const BIN = process.env.JOT_E2E_BIN ? resolve(process.env.JOT_E2E_BIN) : null;
+
 export function tempDir(prefix = "jot-e2e-") {
   return realpathSync(mkdtempSync(join(tmpdir(), prefix)));
 }
@@ -31,7 +34,8 @@ export function jotHome(): { home: string; jot: Jot } {
   const home = tempDir("jot-home-");
   const jot: Jot = (args, opts = {}) => {
     // `bun <file>` swallows the first `--`; the compiled binary does not, so pass one for bun to eat
-    const proc = Bun.spawnSync(["bun", MAIN, "--", ...args], {
+    const cmd = BIN ? [BIN, ...args] : ["bun", MAIN, "--", ...args];
+    const proc = Bun.spawnSync(cmd, {
       cwd: opts.cwd ?? home,
       env: {
         ...process.env,
