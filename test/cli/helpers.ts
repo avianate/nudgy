@@ -43,6 +43,10 @@ export function jotHome(): { home: string; jot: Jot } {
         TZ: "America/New_York",
         JOT_HOME: home,
         EDITOR: "false",
+        // Defaults that keep every test away from real banners, launchd and ~/Library
+        HOME: join(home, "user"),
+        JOT_NOTIFIER: `file:${join(home, "banners.jsonl")}`,
+        JOT_LAUNCHCTL: `file:${join(home, "launchctl.json")}`,
         ...opts.env,
       },
       stdin: opts.stdin === undefined ? "ignore" : Buffer.from(opts.stdin),
