@@ -1,0 +1,19 @@
+{
+  "name": "jot",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "JOT_HOME=./.jot-dev bun src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "check": "biome check --write .",
+    "build": "bun scripts/build.ts",
+    "install:local": "bun scripts/build.ts && bun scripts/installLocal.ts",
+    "coverage:core": "bun scripts/coverageCore.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5",
+    "@types/bun": "^1.4.2",
+    "typescript": "^5.9.3"
+  }
+}
