@@ -9,7 +9,7 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 - [x] **Checkpoint 0:** gates green; human confirms banner and `e` strategy; deps approved
 
 ## Phase 1: Capture, list, search
-- [ ] T4 Storage core: db, pragmas, migration v1, FTS triggers, `createItem`/`getItem`
+- [x] T4 Storage core: db, pragmas, migration v1, FTS triggers, `createItem`/`getItem`
 - [ ] T5 Capture: `jot "…"` / `add` / `--`, reserved words, git context, <100ms bench
 - [ ] T6 `ls` (`--here --done --reminders --json`) and `show`
 - [ ] T7 `edit`, `rm [-y]`, `search` with safe FTS query builder
