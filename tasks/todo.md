@@ -44,7 +44,14 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 - [x] T19 TUI actions: `d` `s` `x` `r` `a`
 - [x] T20 TUI `/` search, `h` repo filter, `?` help, 30s refresh
 - [x] T21 TUI `e` editor round-trip
-- [ ] **Checkpoint 5:** SC1–SC12 all checked; human confirms SC10; manual checklist done
+- [x] **Checkpoint 5:** gates green. SC10 confirmed by the human. SC1 was 50.3ms under load (load avg 21).
+
+## Still open, for the human
+- SC4 true sleep-through: sleep the Mac through several due reminders, then expect one summary on wake. Batching is verified, but only with the display off.
+- SC9: add `eval "$(jot hook zsh)"` to ~/.zshrc yourself, then open a new tab.
+- Checkpoint 3: a real `every weekday 9am` firing on the next weekday.
+- Checkpoint 1: hands-on use of capture, ls --here and search in real repos.
+- Follow-up: an icon for Jot Notifier.app, since banners show a blank square.
 
 ## Decisions
 All open questions are resolved. See "Decisions" in `tasks/plan.md`.
