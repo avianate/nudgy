@@ -695,6 +695,9 @@ same item.
 - `--json` emits times as ISO 8601 strings. The database stores epoch ms.
 - `rm` exits 1 when the confirmation is declined or unanswered, including when there's no stdin.
 - `search` includes done items, which are marked ✓ in the list.
+- `doctor` treats an unset `$EDITOR` as a warning (`!`), not a failure, because `edit` falls back to `vi`.
+- `due` with nothing due prints "nothing due" on stderr and leaves stdout empty. The hook discards stderr.
+- Day views (`today` and friends) include done items. They sort as a chronological agenda: a reminder due that day by its due time, anything else by creation time.
 - Usage errors exit 2. Runtime errors such as "no item #N" or "not in a repo" exit 1.
 - `bun <file>` strips the first `--`. The e2e helper prepends one, and `JOT_E2E_BIN=dist/jot`
   (`bun run test:bin`) runs the e2e suite against the compiled binary.

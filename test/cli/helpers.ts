@@ -34,7 +34,7 @@ export function jotHome(): { home: string; jot: Jot } {
   const home = tempDir("jot-home-");
   const jot: Jot = (args, opts = {}) => {
     // `bun <file>` swallows the first `--`; the compiled binary does not, so pass one for bun to eat
-    const cmd = BIN ? [BIN, ...args] : ["bun", MAIN, "--", ...args];
+    const cmd = BIN ? [BIN, ...args] : [process.execPath, MAIN, "--", ...args];
     const proc = Bun.spawnSync(cmd, {
       cwd: opts.cwd ?? home,
       env: {

@@ -23,6 +23,8 @@ const COMMANDS: Partial<Record<Reserved, () => Promise<Command>>> = {
   tomorrow: () => import("./cli/day"),
   daemon: () => import("./cli/daemon"),
   hook: () => import("./cli/hook"),
+  doctor: () => import("./cli/doctor"),
+  config: () => import("./cli/config"),
 };
 
 async function main(argv: string[]): Promise<number> {
