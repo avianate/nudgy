@@ -1,9 +1,18 @@
+import { basename } from "node:path";
 import { useFocus, useKeyboard, useTerminalDimensions } from "@opentui/react";
 import { useEffect, useMemo, useState } from "react";
 import { absolute, relative } from "../cli/format";
 import { title } from "../core/items";
 import { type Store, TABS, type Tab } from "./store";
-import { Detail, HINTS, ItemRow, Prompt, StatusLine, TabsLine } from "./views";
+import {
+  Detail,
+  Help,
+  HINTS,
+  ItemRow,
+  Prompt,
+  StatusLine,
+  TabsLine,
+} from "./views";
 
 export type AppProps = {
   store: Store;
@@ -16,6 +25,8 @@ export type AppProps = {
 type Mode =
   | { kind: "normal" }
   | { kind: "add" }
+  | { kind: "search" }
+  | { kind: "help" }
   | { kind: "remind"; id: number }
   | { kind: "confirm-delete"; id: number };
 
@@ -24,17 +35,22 @@ type Selection = { id: number | null; index: number };
 const clamp = (n: number, lo: number, hi: number) =>
   Math.max(lo, Math.min(hi, n));
 
-export function App({ store, refreshMs = 30_000, onQuit }: AppProps) {
+export function App({ store, repo, refreshMs = 30_000, onQuit }: AppProps) {
   const { width, height } = useTerminalDimensions();
   const [tab, setTab] = useState<Tab>("due");
   const [version, setVersion] = useState(0);
   const [selection, setSelection] = useState<Selection>({ id: null, index: 0 });
   const [mode, setMode] = useState<Mode>({ kind: "normal" });
   const [status, setStatus] = useState("");
+  const [query, setQuery] = useState("");
+  const [repoOnly, setRepoOnly] = useState(false);
 
   const reload = () => setVersion((v) => v + 1);
   // biome-ignore lint/correctness/useExhaustiveDependencies: version is the reload trigger
-  const items = useMemo(() => store.load(tab, {}), [store, tab, version]);
+  const items = useMemo(
+    () => store.load(tab, { repo: repoOnly && repo ? repo : undefined, query }),
+    [store, tab, version, repoOnly, repo, query],
+  );
   const now = store.now();
 
   // Follow the item, not the row: refreshes and actions reshape the list underneath the cursor
@@ -103,6 +119,19 @@ export function App({ store, refreshMs = 30_000, onQuit }: AppProps) {
       case "a":
         setMode({ kind: "add" });
         return;
+      case "/":
+        setMode({ kind: "search" });
+        return;
+      case "?":
+        setMode({ kind: "help" });
+        return;
+      case "escape":
+        setQuery("");
+        return;
+      case "h":
+        if (!repo) setStatus("✗ not inside a git repo");
+        else setRepoOnly((on) => !on);
+        return;
     }
     if (!selected) return;
     const id = selected.id;
@@ -132,10 +161,18 @@ export function App({ store, refreshMs = 30_000, onQuit }: AppProps) {
 
   useKeyboard((key) => {
     if (mode.kind === "normal") {
-      onNormalKey(key.name, key.shift);
+      // Punctuation keys are matched on the sequence too, since terminals differ in how they name them
+      const name =
+        key.sequence === "/" || key.sequence === "?" ? key.sequence : key.name;
+      onNormalKey(name, key.shift);
+      return;
+    }
+    if (mode.kind === "help") {
+      setMode({ kind: "normal" });
       return;
     }
     if (key.name === "escape") {
+      if (mode.kind === "search") setQuery("");
       setMode({ kind: "normal" });
       setStatus("");
       return;
@@ -189,7 +226,11 @@ export function App({ store, refreshMs = 30_000, onQuit }: AppProps) {
           paddingLeft={1}
           paddingRight={1}
         >
-          <TabsLine tab={tab} repo={null} query="" />
+          <TabsLine
+            tab={tab}
+            repo={repoOnly && repo ? basename(repo) : null}
+            query={query}
+          />
           {items.length === 0 ? (
             <text fg="#8a8f98">nothing here</text>
           ) : (
@@ -212,7 +253,9 @@ export function App({ store, refreshMs = 30_000, onQuit }: AppProps) {
           paddingLeft={1}
           paddingRight={1}
         >
-          {selected ? (
+          {mode.kind === "help" ? (
+            <Help />
+          ) : selected ? (
             <Detail item={selected} now={now} />
           ) : (
             <text fg="#8a8f98">no item selected</text>
@@ -221,6 +264,13 @@ export function App({ store, refreshMs = 30_000, onQuit }: AppProps) {
       </box>
       {mode.kind === "add" ? (
         <Prompt label="New note:" onSubmit={submitAdd} />
+      ) : mode.kind === "search" ? (
+        <Prompt
+          label="Search:"
+          initial={query}
+          onInput={setQuery}
+          onSubmit={() => setMode({ kind: "normal" })}
+        />
       ) : mode.kind === "remind" ? (
         <Prompt
           label={`Remind #${mode.id} (in 2h, fri 4pm, every weekday 9am, clear):`}

@@ -125,9 +125,13 @@ export const HINTS =
 
 export function Prompt({
   label,
+  initial,
+  onInput,
   onSubmit,
 }: {
   label: string;
+  initial?: string;
+  onInput?(text: string): void;
   onSubmit(text: string): void;
 }) {
   return (
@@ -136,10 +140,39 @@ export function Prompt({
       <input
         focused
         flexGrow={1}
+        value={initial}
+        onInput={onInput}
         onSubmit={(value: unknown) =>
           onSubmit(typeof value === "string" ? value : "")
         }
       />
+    </box>
+  );
+}
+
+const HELP: [string, string][] = [
+  ["j / k, ↓ / ↑", "move"],
+  ["tab / shift-tab", "next / previous tab"],
+  ["/", "search (esc clears)"],
+  ["h", "toggle current-repo filter"],
+  ["a", "add a note"],
+  ["e", "edit in $EDITOR"],
+  ["r", "set reminder (in 2h, every weekday 9am, clear)"],
+  ["s", "snooze by defaultSnooze"],
+  ["d", "done (recurring: next occurrence)"],
+  ["x", "delete (confirms)"],
+  ["?", "this help"],
+  ["q", "quit"],
+];
+
+export function Help() {
+  return (
+    <box flexDirection="column">
+      <text fg={ACCENT}>keys (any key closes)</text>
+      <text> </text>
+      {HELP.map(([key, what]) => (
+        <text key={key}>{`${key.padEnd(18)}${what}`}</text>
+      ))}
     </box>
   );
 }
