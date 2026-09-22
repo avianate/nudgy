@@ -51,7 +51,7 @@ const OPTIONS: Record<Reserved, Options> = {
   done: {},
   reopen: {},
   rm: { yes: { type: "boolean", short: "y" } },
-  daemon: {},
+  daemon: { once: bool },
   hook: {},
   doctor: {},
   config: {},

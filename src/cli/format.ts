@@ -1,13 +1,8 @@
-import { basename } from "node:path";
-import type { Item } from "../core/items";
+import { type Item, repoLabel, title } from "../core/items";
 
 const MIN = 60_000;
 const HOUR = 60 * MIN;
 const DAY = 24 * HOUR;
-
-export function title(body: string): string {
-  return (body.split("\n")[0] ?? "").trim();
-}
 
 export function relative(ms: number, now: number): string {
   const diff = ms - now;
@@ -28,13 +23,6 @@ export function absolute(ms: number): string {
   const d = new Date(ms);
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${WEEKDAYS[d.getDay()]} ${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-export function repoLabel(item: Pick<Item, "repo" | "branch">): string {
-  if (!item.repo) return "";
-  return item.branch
-    ? `${basename(item.repo)}@${item.branch}`
-    : basename(item.repo);
 }
 
 export function listLine(item: Item, now: number): string {

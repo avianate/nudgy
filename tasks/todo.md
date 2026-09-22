@@ -19,7 +19,7 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 - [x] T8 `when.ts`, `-r` on capture, `remind` / `remind --clear` (one-shot only)
 - [x] T9 `config.ts`, `done`, `reopen`, `snooze`
 - [x] T10 `due`, `today` / `yesterday` / `tomorrow`
-- [ ] T11 `alerts.plan`, osascript notifier plus fake seam, `daemon run` tick plus status file
+- [x] T11 `alerts.plan`, osascript notifier plus fake seam, `daemon run` tick plus status file
 - [ ] T12 plist, launchctl seam, `daemon install` / `uninstall` / `status`
 - [ ] **Checkpoint 2:** human confirms SC2, SC3, SC4, SC11; Script Editor attribution OK
 

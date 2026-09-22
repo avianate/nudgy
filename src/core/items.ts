@@ -1,4 +1,5 @@
 import type { Database } from "bun:sqlite";
+import { basename } from "node:path";
 
 export type Item = {
   id: number;
@@ -13,6 +14,17 @@ export type Item = {
   lastAlertedAt: number | null;
   doneAt: number | null;
 };
+
+export function title(body: string): string {
+  return (body.split("\n")[0] ?? "").trim();
+}
+
+export function repoLabel(item: Pick<Item, "repo" | "branch">): string {
+  if (!item.repo) return "";
+  return item.branch
+    ? `${basename(item.repo)}@${item.branch}`
+    : basename(item.repo);
+}
 
 export type NewItem = {
   body: string;
@@ -210,4 +222,13 @@ export function dayItems(
       end: window.end,
       repo: window.repo ?? null,
     }) as Item[];
+}
+
+export function markAlerted(db: Database, ids: number[], now: number): void {
+  db.query(
+    "UPDATE items SET last_alerted_at = $now WHERE id IN (SELECT value FROM json_each($ids))",
+  ).run({
+    now,
+    ids: JSON.stringify(ids),
+  });
 }

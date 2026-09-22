@@ -17,7 +17,7 @@ and last the TUI.
 - **Env-level test seams for e2e.** E2E tests spawn `bun src/main.ts`, so in-process fakes don't
   reach them. `main.ts` picks real or fake implementations from env vars. The names are proposed
   and get confirmed in T1:
-  - `JOT_NOTIFIER=fake:<file>` appends notifications as JSON lines instead of calling osascript.
+  - `JOT_NOTIFIER=file:<path>` appends notifications as JSON lines instead of calling osascript.
   - `JOT_LAUNCHCTL=fake:<file>` records launchctl calls and returns canned state.
   - `JOT_NOW=<epoch ms>` fixes the clock.
 

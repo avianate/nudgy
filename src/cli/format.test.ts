@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { absolute, relative, title } from "./format";
+import { title } from "../core/items";
+import { absolute, relative } from "./format";
 
 const NOW = Date.parse("2026-09-22T18:00:00Z");
 const MIN = 60_000;

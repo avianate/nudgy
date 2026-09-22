@@ -1,8 +1,7 @@
-import { deleteItem } from "../core/items";
+import { deleteItem, title } from "../core/items";
 import type { Parsed } from "./args";
 import { requireItem } from "./common";
 import type { Context } from "./context";
-import { title } from "./format";
 import { confirm } from "./prompt";
 
 export async function run(
