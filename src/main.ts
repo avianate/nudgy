@@ -9,6 +9,9 @@ const COMMANDS: Partial<Record<Reserved, () => Promise<Command>>> = {
   add: () => import("./cli/add"),
   ls: () => import("./cli/ls"),
   show: () => import("./cli/show"),
+  edit: () => import("./cli/edit"),
+  rm: () => import("./cli/rm"),
+  search: () => import("./cli/search"),
 };
 
 async function main(argv: string[]): Promise<number> {

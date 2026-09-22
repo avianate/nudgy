@@ -1,6 +1,13 @@
-import { expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { openDb } from "./db";
-import { createItem, getItem } from "./items";
+import {
+  createItem,
+  deleteItem,
+  getItem,
+  listItems,
+  searchItems,
+  updateBody,
+} from "./items";
 
 test("createItem stores the body, git context and timestamps", () => {
   const db = openDb(":memory:");
@@ -53,4 +60,120 @@ test("ids are sequential small integers", () => {
 
 test("getItem returns null for a missing id", () => {
   expect(getItem(openDb(":memory:"), 42)).toBeNull();
+});
+
+describe("search", () => {
+  function seeded() {
+    const db = openDb(":memory:");
+    createItem(
+      db,
+      { body: "check the migration landed", repo: "/a", branch: null },
+      1,
+    );
+    createItem(
+      db,
+      { body: "re-run the flaky suite", repo: "/b", branch: null },
+      2,
+    );
+    createItem(
+      db,
+      { body: 'quote "this" (maybe) NEAR done*', repo: "/a", branch: null },
+      3,
+    );
+    return db;
+  }
+  const ids = (items: { id: number }[]) => items.map((i) => i.id);
+
+  test("matches word prefixes", () => {
+    expect(ids(searchItems(seeded(), "migr"))).toEqual([1]);
+    expect(ids(searchItems(seeded(), "fla sui"))).toEqual([2]);
+  });
+
+  test("all terms must match", () => {
+    expect(ids(searchItems(seeded(), "flaky migration"))).toEqual([]);
+  });
+
+  test.each([
+    "re-run",
+    '"',
+    "*",
+    "(",
+    "NEAR",
+    "AND OR NOT",
+    'quote "this',
+    "done*",
+    "^col:x",
+  ])("raw FTS syntax %p never throws", (query) => {
+    expect(() => searchItems(seeded(), query)).not.toThrow();
+  });
+
+  test("hyphenated input matches its words", () => {
+    expect(ids(searchItems(seeded(), "re-run"))).toEqual([2]);
+  });
+
+  test("a query with no words matches nothing", () => {
+    expect(searchItems(seeded(), '"*"')).toEqual([]);
+  });
+
+  test("filters by repo", () => {
+    expect(ids(searchItems(seeded(), "the", { repo: "/a" }))).toEqual([1]);
+  });
+
+  test("reflects body edits and deletes", () => {
+    const db = seeded();
+    updateBody(db, 1, "check the deploy", 10);
+    expect(ids(searchItems(db, "migration"))).toEqual([]);
+    expect(ids(searchItems(db, "deploy"))).toEqual([1]);
+    deleteItem(db, 1);
+    expect(ids(searchItems(db, "deploy"))).toEqual([]);
+  });
+});
+
+test("updateBody bumps updatedAt", () => {
+  const db = openDb(":memory:");
+  createItem(db, { body: "a", repo: null, branch: null }, 1);
+  expect(updateBody(db, 1, "b", 5)).toMatchObject({
+    body: "b",
+    createdAt: 1,
+    updatedAt: 5,
+  });
+});
+
+test("deleteItem reports whether anything was deleted", () => {
+  const db = openDb(":memory:");
+  createItem(db, { body: "a", repo: null, branch: null }, 1);
+  expect(deleteItem(db, 1)).toBe(true);
+  expect(deleteItem(db, 1)).toBe(false);
+});
+
+describe("listItems", () => {
+  function seeded() {
+    const db = openDb(":memory:");
+    createItem(db, { body: "old note", repo: "/a", branch: null }, 1);
+    createItem(
+      db,
+      { body: "reminder", repo: "/b", branch: null, remindAt: 50 },
+      2,
+    );
+    createItem(db, { body: "new note", repo: "/a", branch: null }, 3);
+    db.run("UPDATE items SET done_at = 9 WHERE id = 1");
+    return db;
+  }
+  const ids = (items: { id: number }[]) => items.map((i) => i.id);
+
+  test("lists open items newest first by default", () => {
+    expect(ids(listItems(seeded()))).toEqual([3, 2]);
+  });
+
+  test("done lists only completed items", () => {
+    expect(ids(listItems(seeded(), { done: true }))).toEqual([1]);
+  });
+
+  test("remindersOnly keeps items with a reminder", () => {
+    expect(ids(listItems(seeded(), { remindersOnly: true }))).toEqual([2]);
+  });
+
+  test("repo filters to one repo", () => {
+    expect(ids(listItems(seeded(), { repo: "/a" }))).toEqual([3]);
+  });
 });

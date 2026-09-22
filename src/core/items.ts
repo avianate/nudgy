@@ -72,3 +72,43 @@ export function listItems(db: Database, filter: ListFilter = {}): Item[] {
       remindersOnly: filter.remindersOnly ? 1 : 0,
     }) as Item[];
 }
+
+export function updateBody(
+  db: Database,
+  id: number,
+  body: string,
+  now: number,
+): Item | null {
+  return db
+    .query(
+      `UPDATE items SET body = $body, updated_at = $now WHERE id = $id RETURNING ${COLUMNS}`,
+    )
+    .get({ id, body, now }) as Item | null;
+}
+
+export function deleteItem(db: Database, id: number): boolean {
+  return db.query("DELETE FROM items WHERE id = $id").run({ id }).changes > 0;
+}
+
+// Only word tokens reach FTS5, each quoted and prefix-matched, so user input can never be FTS syntax
+export function ftsQuery(input: string): string | null {
+  const words = input.match(/[\p{L}\p{N}_]+/gu);
+  return words ? words.map((w) => `"${w}"*`).join(" ") : null;
+}
+
+export function searchItems(
+  db: Database,
+  query: string,
+  filter: { repo?: string } = {},
+): Item[] {
+  const match = ftsQuery(query);
+  if (!match) return [];
+  return db
+    .query(
+      `SELECT ${COLUMNS} FROM items
+       WHERE id IN (SELECT rowid FROM items_fts WHERE items_fts MATCH $match)
+         AND ($repo IS NULL OR repo = $repo)
+       ORDER BY created_at DESC, id DESC`,
+    )
+    .all({ match, repo: filter.repo ?? null }) as Item[];
+}
