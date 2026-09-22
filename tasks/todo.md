@@ -30,7 +30,7 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 - [ ] **Checkpoint 3:** gates green; human sees a real weekday reminder fire
 
 ## Phase 4: Shell integration and diagnostics
-- [ ] T16 `jot hook zsh`, spawn-free `jot_prompt_segment`
+- [x] T16 `jot hook zsh`, spawn-free `jot_prompt_segment`
 - [ ] T17 `doctor` and `config`
 - [ ] **Checkpoint 4:** human confirms SC9 in a new zsh tab
 
