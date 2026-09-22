@@ -5,8 +5,8 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 ## Phase 0: Foundation and spikes
 - [x] T1 Project scaffold: build, codesign, atomic `install:local`, TZ canary, coverage method
 - [x] T2 SPIKE: banner from LaunchAgent (real label and path). **Gate:** no banner means stop
-- [ ] T3 SPIKE: OpenTUI in compiled binary, dynamic import, latency, suspend for `$EDITOR`. **Gate**
-- [ ] **Checkpoint 0:** gates green; human confirms banner and `e` strategy; deps approved
+- [x] T3 SPIKE: OpenTUI in compiled binary, dynamic import, latency, suspend for `$EDITOR`. **Gate**
+- [x] **Checkpoint 0:** gates green; human confirms banner and `e` strategy; deps approved
 
 ## Phase 1: Capture, list, search
 - [ ] T4 Storage core: db, pragmas, migration v1, FTS triggers, `createItem`/`getItem`

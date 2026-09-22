@@ -6,6 +6,8 @@ const result = await Bun.build({
   entrypoints: ["src/main.ts"],
   compile: { outfile },
   minify: true,
+  // Without splitting, the TUI's modules are parsed on every launch and add ~40ms to capture
+  splitting: true,
 });
 if (!result.success) {
   for (const log of result.logs) console.error(log);
