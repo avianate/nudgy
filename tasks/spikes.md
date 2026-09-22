@@ -51,3 +51,22 @@
 
   **Decision:** `scripts/build.ts` uses `splitting: true`. The split binary's TUI was
   re-verified under a pty.
+
+## Checkpoint 2: live daemon under launchd (2026-09-22)
+
+- **SC2: pass.** The reminder was due at 14:56:39 and alerted at 14:57:02, 23s late (budget
+  30s). The human saw the banner.
+- **SC3: pass.** With `realertMinutes: 1` it re-alerted at 14:58:05, 63s after the first
+  banner. The human saw the second banner.
+- **SC11: pass.** `bun run install:local` over the running daemon swapped PID 44992 for 48841.
+  The old process logged "daemon stopped" and exited 0, and the new one was ticking 2s later.
+  `codesign --verify` passed, and there was no SIGKILL.
+- **SC4: partial.** The Mac did **not** system-sleep. `pmset -g log` shows only the display off
+  from 15:00:30 to 15:03:35, and something held a wake assertion. All three reminders were
+  batched into one tick at 15:01:54. osascript exited 0, but no banner popped while the display
+  was off. **Notification Center held exactly one "3 reminders due" entry**, so batching works.
+  - A true sleep-through was not exercised. The human will check it in normal use.
+  - The re-alert (every `realertMinutes`) is what surfaces a summary that arrived while the
+    screen was off.
+- **Cleanup:** the test items #1–4 were deleted and `config.json` was removed, so defaults
+  apply. The daemon is left installed and running.
