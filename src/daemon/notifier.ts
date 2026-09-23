@@ -2,7 +2,7 @@ import { appendFileSync, existsSync } from "node:fs";
 import type { Banner } from "../core/alerts";
 import type { Env, Paths } from "../core/paths";
 
-export type Notification = Banner & { sound: string };
+export type Notification = Banner & { sound: string; snooze?: string };
 
 export type Notifier = { kind: string; notify(n: Notification): Promise<void> };
 
@@ -46,11 +46,27 @@ export function fileNotifier(path: string): Notifier {
 
 export const HELPER_NOT_AUTHORIZED = 3;
 
-export function helperNotifier(executable: string): Notifier {
+// A clicked action relaunches the helper with no daemon around, so the payload says how to reach jot
+export type HelperTarget = { jotBin: string; jotHome: string };
+
+export function helperNotifier(
+  executable: string,
+  target: HelperTarget,
+): Notifier {
   return {
     kind: "helper",
-    async notify({ title, subtitle, body, sound, id }) {
-      const proc = Bun.spawn([executable, title, subtitle, body, sound, id], {
+    async notify({ title, subtitle, body, sound, id, itemId, snooze }) {
+      const payload = {
+        title,
+        subtitle,
+        body,
+        sound,
+        id,
+        ...(itemId === undefined
+          ? {}
+          : { item: { id: itemId, snooze: snooze ?? "", ...target } }),
+      };
+      const proc = Bun.spawn([executable, "--json", JSON.stringify(payload)], {
         stdout: "ignore",
         stderr: "pipe",
       });
@@ -102,5 +118,9 @@ export function notifierFromEnv(
       `JOT_NOTIFIER must be file:<path> or osascript, got "${spec}"`,
     );
   if (!existsSync(paths.notifier)) return osascriptNotifier;
-  return withFallback(helperNotifier(paths.notifier), osascriptNotifier, log);
+  return withFallback(
+    helperNotifier(paths.notifier, { jotBin: paths.bin, jotHome: paths.home }),
+    osascriptNotifier,
+    log,
+  );
 }

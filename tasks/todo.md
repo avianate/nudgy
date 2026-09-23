@@ -46,6 +46,11 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 - [x] T21 TUI `e` editor round-trip
 - [x] **Checkpoint 5:** gates green. SC10 confirmed by the human. SC1 was 50.3ms under load (load avg 21).
 
+## Phase 6: Actionable notifications (requested 2026-09-23)
+- [x] N5 Alert shows note text; payload carries item id, jot path and home to the helper (TS side, TDD)
+- [x] N6 Helper registers Done / Snooze / Remind later… actions and runs jot when clicked (Swift, live-tested)
+- [x] **Checkpoint 6:** human clicked Snooze (from a daemon-fired alert), Remind later and Done; each took effect
+
 ## Still open, for the human
 - SC4 true sleep-through: sleep the Mac through several due reminders, then expect one summary on wake. Batching is verified, but only with the display off.
 - SC9: add `eval "$(jot hook zsh)"` to ~/.zshrc yourself, then open a new tab.

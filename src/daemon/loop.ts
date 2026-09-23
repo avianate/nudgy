@@ -32,6 +32,7 @@ export async function tick(deps: TickDeps): Promise<void> {
         await deps.notifier.notify({
           ...notificationFor(plan),
           sound: config.sound,
+          snooze: config.defaultSnooze,
         });
         markAlerted(
           db,

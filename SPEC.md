@@ -31,7 +31,7 @@ are hard to miss, and nothing requires leaving the terminal except the banner it
 ### Out of scope (v1)
 
 Apple Reminders / EventKit, iCloud or any sync, any Swift beyond the notifier helper, any GUI,
-clickable or actionable notifications, Homebrew dependencies (including `alerter` and
+notification actions beyond Done / Snooze / Remind later, Homebrew dependencies (including `alerter` and
 `terminal-notifier`), non-zsh shells, Intel builds, distribution/packaging, tags
 (repo/branch context replaces them for v1), attachments.
 
@@ -84,6 +84,14 @@ There is one entity: an **item**. Every item is a note. An item may carry a remi
   unacknowledged, it rolls forward: `remind_at` moves to the latest occurrence `<= now`.
   One outstanding instance, never a stack.
 - Alerts are up to 30 seconds late by design.
+- A single reminder's alert shows its title, its repo and the rest of the note text, or the due
+  time for a one-line note. It has three actions:
+  - **Done**, which runs `jot done <id>`
+  - **Snooze** (`defaultSnooze`), which runs `jot snooze <id>`
+  - **Remind later…**, a text field that runs `jot remind <id> <text>`
+
+  The helper app runs the command when the button is clicked. A failure, such as unparseable
+  text, posts a follow-up alert with the error. The summary alert has no actions.
 
 ### Recurrence grammar
 
@@ -217,7 +225,8 @@ place over a signed binary gets it SIGKILLed on the next launch on Apple Silicon
 
 ## Data
 
-`~/.jot/` (overridable with `JOT_HOME`): `jot.db`, `config.json`, `daemon.log`, `status`.
+`~/.jot/` (overridable with `JOT_HOME`): `jot.db`, `config.json`, `daemon.log`,
+`notifier.log` (clicked notification actions), `status`.
 
 ```sql
 CREATE TABLE items (

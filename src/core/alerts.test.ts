@@ -85,15 +85,36 @@ describe("planAlerts", () => {
 });
 
 describe("notificationFor", () => {
-  test("a single banner carries the title and repo", () => {
+  test("a single alert carries the title, repo and the rest of the note, and names its item", () => {
     expect(
       notificationFor({ kind: "single", items: [item({ id: 7 })] }),
     ).toEqual({
       title: "re-run the flaky suite",
       subtitle: "jot@main",
-      body: "#7 · jot done 7 · jot snooze 7",
+      body: "more detail",
       id: "jot-item-7",
+      itemId: 7,
     });
+  });
+
+  test("a one-line note shows its due time as the body", () => {
+    const remindAt = new Date("2026-09-23T09:05:00").getTime();
+    expect(
+      notificationFor({
+        kind: "single",
+        items: [item({ body: "standup", remindAt })],
+      }).body,
+    ).toBe("due 09:05");
+  });
+
+  test("long note text is trimmed to fit an alert", () => {
+    const body = notificationFor({
+      kind: "single",
+      items: [item({ body: `title\n\n${"word ".repeat(100)}` })],
+    }).body;
+    expect(body.length).toBeLessThanOrEqual(240);
+    expect(body.endsWith("…")).toBe(true);
+    expect(body.startsWith("word word")).toBe(true);
   });
 
   test("a summary banner points at jot due", () => {
@@ -108,6 +129,10 @@ describe("notificationFor", () => {
       body: "3 reminders due — jot due",
       id: "jot-summary",
     });
+    expect(
+      "itemId" in
+        notificationFor({ kind: "summary", items: [item({}), item({})] }),
+    ).toBe(false);
   });
 
   test("re-alerts reuse the same id so they replace rather than stack", () => {

@@ -59,7 +59,12 @@ describe("tick", () => {
     );
     await tick(deps);
     expect(sent).toHaveLength(1);
-    expect(sent[0]).toMatchObject({ title: "ship it", sound: "Glass" });
+    expect(sent[0]).toMatchObject({
+      title: "ship it",
+      sound: "Glass",
+      itemId: 1,
+      snooze: "10m",
+    });
     expect(getItem(db, 1)).toMatchObject({
       lastAlertedAt: NOW,
       remindAt: NOW - MIN,
@@ -112,6 +117,7 @@ describe("tick", () => {
         body: "3 reminders due — jot due",
         id: "jot-summary",
         sound: "Glass",
+        snooze: "10m",
       },
     ]);
     expect([1, 2, 3].map((id) => getItem(db, id)?.lastAlertedAt)).toEqual([

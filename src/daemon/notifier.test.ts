@@ -121,24 +121,47 @@ const note: Notification = {
   id: "jot-item-7",
 };
 
-test("the helper gets title, subtitle, body and sound as separate argv entries", async () => {
+test("the helper gets one JSON payload with the text, and for an item, how to act on it", async () => {
   const home = tempHome();
   const { exe, log } = fakeHelper(home);
-  await helperNotifier(exe).notify(note);
-  expect(readFileSync(log, "utf8").split("\0").slice(0, 5)).toEqual([
-    note.title,
-    note.subtitle,
-    note.body,
-    note.sound,
-    "jot-item-7",
-  ]);
+  await helperNotifier(exe, {
+    jotBin: "/u/.local/bin/jot",
+    jotHome: "/u/.jot",
+  }).notify({
+    ...note,
+    itemId: 7,
+    snooze: "10m",
+  });
+  const argv = readFileSync(log, "utf8").split("\0");
+  expect(argv[0]).toBe("--json");
+  expect(JSON.parse(argv[1] as string)).toEqual({
+    title: note.title,
+    subtitle: note.subtitle,
+    body: note.body,
+    sound: "Glass",
+    id: "jot-item-7",
+    item: {
+      id: 7,
+      snooze: "10m",
+      jotBin: "/u/.local/bin/jot",
+      jotHome: "/u/.jot",
+    },
+  });
+});
+
+test("a notification without an item carries no actions", async () => {
+  const { exe, log } = fakeHelper(tempHome());
+  await helperNotifier(exe, { jotBin: "/b", jotHome: "/h" }).notify(note);
+  expect(
+    JSON.parse(readFileSync(log, "utf8").split("\0")[1] as string).item,
+  ).toBeUndefined();
 });
 
 test("a helper that is not authorized fails with the settings to fix", async () => {
   const { exe } = fakeHelper(tempHome(), 3);
-  await expect(helperNotifier(exe).notify(note)).rejects.toThrow(
-    /Notifications → Jot/,
-  );
+  await expect(
+    helperNotifier(exe, { jotBin: "/b", jotHome: "/h" }).notify(note),
+  ).rejects.toThrow(/Notifications → Jot/);
 });
 
 test("the fallback notifier is used, and the failure logged, when the primary fails", async () => {

@@ -8,7 +8,27 @@ export type Banner = {
   subtitle: string;
   body: string;
   id: string;
+  // Set only for a single reminder: the helper offers Done / Snooze / Remind later on it
+  itemId?: number;
 };
+
+const MAX_BODY = 240;
+
+function alertBody(item: Item): string {
+  const rest = item.body
+    .split("\n")
+    .slice(1)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (rest)
+    return rest.length > MAX_BODY
+      ? `${rest.slice(0, MAX_BODY - 1).trimEnd()}…`
+      : rest;
+  if (item.remindAt === null) return "";
+  const d = new Date(item.remindAt);
+  return `due ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
 
 const MIN = 60_000;
 
@@ -36,8 +56,9 @@ export function notificationFor(plan: AlertPlan): Banner {
     return {
       title: title(first.body),
       subtitle: repoLabel(first),
-      body: `#${first.id} · jot done ${first.id} · jot snooze ${first.id}`,
+      body: alertBody(first),
       id: `jot-item-${first.id}`,
+      itemId: first.id,
     };
   }
   return {

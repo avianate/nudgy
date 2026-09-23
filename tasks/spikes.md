@@ -129,3 +129,21 @@ notifier, with osascript kept as a fallback. SPEC.md was updated to match.
   Persistent and Show previews: Always again, and the icon then showed.
   - The old "Jot" (`dev.jot.notifier`) entry lingers in Settings and can be switched off.
   - **Lesson:** never post from a bundle before its icon is final, because the ID gets burned.
+
+## Actionable notifications (2026-09-23)
+
+- **Payload:** the daemon passes the helper one `--json` payload. For a single reminder it
+  includes `item: {id, snooze, jotBin, jotHome}`. The helper registers a `jot-reminder` category
+  with three actions: **Done**, **Snooze <defaultSnooze>**, and **Remind later…**, which is a
+  `UNTextInputNotificationAction`.
+- **Clicks:** a click relaunches the helper with no arguments. A `UNUserNotificationCenter`
+  delegate, set before `NSApplication.run()`, receives the response and runs
+  `jot done|snooze|remind <id> [text]` with the payload's `JOT_HOME`. Each action and its result
+  go to `~/.jot/notifier.log`. On failure it posts a follow-up alert with the reason.
+- **Live checks:** the human clicked each action on alerts from the helper. The log showed
+  `action snooze` (which failed correctly: "#6 is done"), then `action later text="tomorrow 9am"
+  → ok` and `action done → ok`, and the database matched each time.
+- **Previews:** alerts posted *before* Show previews was switched to Always keep reading
+  "Notification". Only new alerts show the text.
+- **Unexplained:** one early "Remind later" attempt, on a build without the log, left the item
+  marked done. It didn't reproduce with logging in place.
