@@ -115,7 +115,7 @@ test("nudgy_prompt_segment shows the due count using builtins only", () => {
   // An empty PATH makes any spawned command fail, so a clean result proves no process was started
   const result = zsh(`source ${hookFile}; nudgy_prompt_segment`, { path: "" });
   expect(result.stderr).toBe("");
-  expect(result.stdout).toBe("⏰3");
+  expect(result.stdout).toBe("⏰ 3");
 });
 
 test("nudgy_prompt_segment is silent at zero or with no status file", () => {

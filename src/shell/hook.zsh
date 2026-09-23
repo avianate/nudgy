@@ -10,6 +10,6 @@ nudgy_prompt_segment() {
   local count
   [[ -r __NUDGY_STATUS__ ]] || return 0
   read -r count < __NUDGY_STATUS__ || return 0
-  (( count > 0 )) && print -n "⏰${count}"
+  (( count > 0 )) && print -n "⏰ ${count}"
   return 0
 }
