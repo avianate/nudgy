@@ -18,7 +18,11 @@ if (!result.success) {
 await $`codesign -s - -f ${outfile}`;
 
 const app = "dist/Jot Notifier.app";
-const sources = ["src/notifier/main.swift", "src/notifier/Info.plist"];
+const sources = [
+  "src/notifier/main.swift",
+  "src/notifier/Info.plist",
+  "scripts/icon.swift",
+];
 const stamp = "dist/.notifier-source-hash";
 const hasher = new Bun.CryptoHasher("sha256");
 for (const file of sources) hasher.update(await Bun.file(file).arrayBuffer());
@@ -29,8 +33,11 @@ const cached =
 if (cached && (await Bun.file(`${app}/Contents/MacOS/jot-notify`).exists())) {
   console.log("notifier unchanged, skipping swiftc");
 } else {
-  await $`rm -rf ${app} && mkdir -p ${app}/Contents/MacOS`;
+  await $`rm -rf ${app} dist/Assets.xcassets && mkdir -p ${app}/Contents/MacOS ${app}/Contents/Resources`;
   await $`cp src/notifier/Info.plist ${app}/Contents/Info.plist`;
+  // actool emits both Assets.car (CFBundleIconName) and AppIcon.icns (CFBundleIconFile), as Xcode would
+  await $`xcrun swift scripts/icon.swift dist/Assets.xcassets`;
+  await $`xcrun actool --compile ${app}/Contents/Resources --platform macosx --minimum-deployment-target 14.0 --app-icon AppIcon --output-partial-info-plist dist/icon-partial.plist dist/Assets.xcassets`.quiet();
   await $`xcrun swiftc -O -o ${app}/Contents/MacOS/jot-notify src/notifier/main.swift`;
   await $`codesign -s - -f ${app}`;
   await Bun.write(stamp, hash);

@@ -79,7 +79,7 @@ notifier, with osascript kept as a fallback. SPEC.md was updated to match.
 
 - **Build:** `swiftc -O` builds `src/notifier/main.swift` into
   `Jot Notifier.app/Contents/MacOS/jot-notify`, alongside an `Info.plist` with
-  `CFBundleIdentifier` = `dev.jot.notifier`, name "Jot" and `LSUIElement`. The bundle is
+  `CFBundleIdentifier` = `dev.jot.notifier` (later `dev.jot.app`), name "Jot" and `LSUIElement`. The bundle is
   ad-hoc signed. It uses the Xcode toolchain (Swift 6.4, macOS 27 SDK).
 - **Registration:** the first run, straight from the binary, returned "Notifications are not
   allowed for this application" at once, with no prompt. **Running `lsregister -f <bundle>`
@@ -100,3 +100,27 @@ notifier, with osascript kept as a fallback. SPEC.md was updated to match.
   15:25:00 with no fallback logged, and the human confirmed it showed as Jot with the title and
   body.
 - **Cosmetic:** the bundle has no icon, so banners show a blank square. This is a follow-up.
+
+## Follow-ups: stable notification IDs and app icon (2026-09-23)
+
+- **Replacement:** each banner carries a stable identifier: `jot-item-<id>` for a single
+  reminder, `jot-summary` for the summary and `jot-doctor` for doctor's test. The helper calls
+  `removeDeliveredNotifications(withIdentifiers:)`, then posts with the same identifier. Two
+  posts with one ID 10s apart gave **one** alert, and the second popped up again with sound. The
+  human confirmed it.
+- **Icon:** `scripts/icon.swift` draws the icon with AppKit into an asset catalog. `actool`
+  compiles it to `Assets.car` plus `AppIcon.icns`, and `Info.plist` sets both
+  `CFBundleIconName` and `CFBundleIconFile`. `NSWorkspace` resolved the icon correctly.
+- **Notification Center icon cache:** the icon stayed blank on alerts and in System Settings.
+  None of these fixed it:
+  - bumping `CFBundleVersion`
+  - `lsregister -f`
+  - `killall NotificationCenter`
+  - `killall usernoted`
+  - adding an asset catalog
+
+  Notification Center keeps the icon from an app's first registration, when the bundle had
+  none. **Fix:** a new bundle identifier, `dev.jot.app`. The human re-granted permission, set
+  Persistent and Show previews: Always again, and the icon then showed.
+  - The old "Jot" (`dev.jot.notifier`) entry lingers in Settings and can be switched off.
+  - **Lesson:** never post from a bundle before its icon is final, because the ID gets burned.
