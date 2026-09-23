@@ -727,8 +727,10 @@ same item.
 - The helper's bundle ID is `dev.jot.app`. It moved from `dev.jot.notifier`, whose
   Notification Center record had cached a blank icon. Changing it again means re-granting
   permission.
-- Notification IDs are `jot-item-<id>`, `jot-summary` and `jot-doctor`. A re-alert replaces the
-  earlier alert for the same reminder. A summary and a single alert can still both be on screen.
+- Notification IDs are `jot-item-<id>`, `jot-summary` and `jot-doctor`. They dedupe
+  Notification Center's list per reminder. Persistent alerts on screen still stack until
+  dismissed, which is macOS behaviour. `jot-notify --list` prints the delivered IDs for
+  diagnosis.
 - The TUI `r` prompt accepts `clear` to remove a reminder. The TUI `a` prompt takes plain text
   only, with no `-r`. Set a reminder afterwards with `r`.
 - `bun <file>` strips the first `--`. The e2e helper prepends one, and `JOT_E2E_BIN=dist/jot`

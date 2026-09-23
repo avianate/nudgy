@@ -103,11 +103,16 @@ notifier, with osascript kept as a fallback. SPEC.md was updated to match.
 
 ## Follow-ups: stable notification IDs and app icon (2026-09-23)
 
-- **Replacement:** each banner carries a stable identifier: `jot-item-<id>` for a single
-  reminder, `jot-summary` for the summary and `jot-doctor` for doctor's test. The helper calls
-  `removeDeliveredNotifications(withIdentifiers:)`, then posts with the same identifier. Two
-  posts with one ID 10s apart gave **one** alert, and the second popped up again with sound. The
-  human confirmed it.
+- **Stable IDs:** each banner carries a stable identifier: `jot-item-<id>` for a single
+  reminder, `jot-summary` for the summary and `jot-doctor` for doctor's test.
+- **What that buys:** `jot-notify --list` shows Notification Center keeps **one** delivered entry
+  per ID across re-alerts.
+- **What it doesn't buy:** with the **Persistent** style, alerts already on screen **still
+  stack**. macOS doesn't retract a presented alert, whether or not
+  `removeDeliveredNotifications` runs first. Both variants were tried, and the human sees two
+  alerts both times. The human considers this correct for Persistent. The simpler variant, with
+  no removal, is kept.
+- **Correction:** an earlier single test that looked like a clean replacement didn't reproduce.
 - **Icon:** `scripts/icon.swift` draws the icon with AppKit into an asset catalog. `actool`
   compiles it to `Assets.car` plus `AppIcon.icns`, and `Info.plist` sets both
   `CFBundleIconName` and `CFBundleIconFile`. `NSWorkspace` resolved the icon correctly.

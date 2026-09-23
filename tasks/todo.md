@@ -51,7 +51,7 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 - SC9: add `eval "$(jot hook zsh)"` to ~/.zshrc yourself, then open a new tab.
 - Checkpoint 3: a real `every weekday 9am` firing on the next weekday.
 - Checkpoint 1: hands-on use of capture, ls --here and search in real repos.
-- [x] Follow-up: stable notification IDs, so a re-alert replaces the previous alert.
+- [x] Follow-up: stable notification IDs. They dedupe Notification Center per reminder; Persistent alerts on screen still stack, which is macOS behaviour.
 - [x] Follow-up: an app icon for Jot Notifier.app, which needed the new bundle ID `dev.jot.app`.
 - Optional: switch off the stale old "Jot" entry in System Settings → Notifications.
 

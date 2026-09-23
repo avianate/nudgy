@@ -2,7 +2,7 @@ import { type Item, repoLabel, title } from "./items";
 
 export type AlertPlan = { kind: "none" | "single" | "summary"; items: Item[] };
 
-// id is stable per reminder (and for the summary) so a re-alert replaces the previous notification instead of stacking
+// id is stable per reminder (and for the summary) so Notification Center keeps one entry per reminder, not one per re-alert
 export type Banner = {
   title: string;
   subtitle: string;
