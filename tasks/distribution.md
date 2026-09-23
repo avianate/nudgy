@@ -38,6 +38,17 @@ The name and the bundle ID become permanent once other people install the tool.
    new bundle ID and set Persistent and Show previews: Always.
 5. Switch off the stale "Jot" entries in System Settings → Notifications.
 
+**Done on the author's machine, 2026-09-23:**
+- The old agent was booted out, the WAL checkpointed, and `~/.jot` archived to
+  `~/.nudgy/jot-backup-2026-09-23.tar.gz`.
+- The database was copied to `~/.nudgy/nudgy.db` (integrity ok, one item).
+- nudgy and its daemon were installed.
+- `~/.local/bin/jot`, the old helper (unregistered from LaunchServices first) and `~/.jot` were
+  removed.
+- Permission was granted for the new bundle ID. `doctor` shows all green.
+- Left to the human: `~/.zshrc` line 200 still says `jot hook zsh`, and the repo folder is still
+  named `jot`, so notes captured there are tagged `jot@main`.
+
 Ship a one-time migration inside `setup` if anyone else has installed a pre-release build.
 Otherwise, do it by hand once.
 
