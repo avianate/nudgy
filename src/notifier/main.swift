@@ -119,12 +119,13 @@ final class Responder: NSObject, UNUserNotificationCenterDelegate {
     let command: [String]
     switch response.actionIdentifier {
     case "done": command = ["done", String(id)]
-    case "snooze": command = ["snooze", String(id)]
+    // A plain click on the alert snoozes too; closing it with ✕ delivers nothing, so it only waits for the re-alert
+    case "snooze", UNNotificationDefaultActionIdentifier: command = ["snooze", String(id)]
     case "later":
       let text = (response as? UNTextInputNotificationResponse)?.userText.trimmingCharacters(in: .whitespaces) ?? ""
       if text.isEmpty { return }
       command = ["remind", String(id), text]
-    default: return  // a click on the alert itself just dismisses it
+    default: return
     }
     let failure = runJot(bin, home: home, command)
     log(home, "jot \(command.joined(separator: " ")) → \(failure.map { "failed: \($0)" } ?? "ok")")

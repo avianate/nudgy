@@ -87,7 +87,8 @@ There is one entity: an **item**. Every item is a note. An item may carry a remi
 - A single reminder's alert shows its title, its repo and the rest of the note text, or the due
   time for a one-line note. It has three actions:
   - **Done**, which runs `jot done <id>`
-  - **Snooze** (`defaultSnooze`), which runs `jot snooze <id>`
+  - **Snooze** (`defaultSnooze`), which runs `jot snooze <id>`. Clicking the alert itself does the
+    same. Closing it with ✕ changes nothing, and it re-alerts after `realertMinutes`.
   - **Remind later…**, a text field that runs `jot remind <id> <text>`
 
   The helper app runs the command when the button is clicked. A failure, such as unparseable
