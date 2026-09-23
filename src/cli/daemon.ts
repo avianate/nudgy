@@ -95,8 +95,8 @@ async function status(ctx: Context): Promise<number> {
     : pid
       ? `running (pid ${pid})`
       : "loaded, not running";
-  const lastTick = existsSync(ctx.paths.status)
-    ? statSync(ctx.paths.status).mtimeMs
+  const lastTick = existsSync(ctx.paths.tick)
+    ? statSync(ctx.paths.tick).mtimeMs
     : null;
   const now = ctx.clock.now();
   ctx.out(`daemon     ${state}`);

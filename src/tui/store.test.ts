@@ -66,3 +66,24 @@ test("a bad reminder throws a readable error and changes nothing", () => {
   expect(() => store.remind(4, "banana")).toThrow(/can't understand/);
   expect(getItem(db, 4)?.remindAt).toBeNull();
 });
+
+test("every change notifies onChange so the prompt count can refresh", () => {
+  const db = openDb(":memory:");
+  createItem(db, { body: "a", repo: null, branch: null, remindAt: NOW - H }, 0);
+  let changes = 0;
+  const store = createStore(
+    db,
+    { now: () => NOW },
+    { onChange: () => changes++ },
+  );
+  store.load("due", {});
+  store.get(1);
+  expect(changes).toBe(0);
+  store.snooze(1);
+  store.remind(1, "in 2 hours");
+  store.complete(1);
+  const added = store.add("b");
+  store.setBody(added.id, "c");
+  store.remove(added.id);
+  expect(changes).toBe(6);
+});

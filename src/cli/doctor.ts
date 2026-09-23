@@ -105,9 +105,7 @@ async function runChecks(ctx: Context): Promise<Check[]> {
   }
 
   const { loaded, pid } = await launchctlFromEnv(env).print();
-  const lastTick = existsSync(paths.status)
-    ? statSync(paths.status).mtimeMs
-    : null;
+  const lastTick = existsSync(paths.tick) ? statSync(paths.tick).mtimeMs : null;
   const now = ctx.clock.now();
   const ticking = lastTick !== null && now - lastTick < STALE_TICK_MS;
   checks.push({

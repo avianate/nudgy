@@ -691,6 +691,9 @@ same item.
 ## Decisions (resolved 2026-09-22)
 
 1. **Last tick time.** The mtime of `~/.jot/status` is the last tick time.
+   - **Superseded 2026-09-23:** the CLI and TUI now rewrite `status` straight after any change,
+     so the prompt count has no lag. The daemon's heartbeat moved to its own `tick` file, which
+     only the daemon writes.
 2. **Roll-forward.** Rolling a recurring item forward clears `last_alerted_at`. It runs in the
    daemon tick and in `done`.
 3. **`done` on plain notes** is allowed. It sets `done_at`, and the note is hidden from the

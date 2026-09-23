@@ -27,6 +27,15 @@ const COMMANDS: Partial<Record<Reserved, () => Promise<Command>>> = {
   config: () => import("./cli/config"),
 };
 
+const CHANGES_DUE = new Set<Parsed["command"]>([
+  "add",
+  "remind",
+  "snooze",
+  "done",
+  "reopen",
+  "rm",
+]);
+
 async function main(argv: string[]): Promise<number> {
   try {
     const parsed = parseArgs(argv);
@@ -54,7 +63,16 @@ async function main(argv: string[]): Promise<number> {
       throw new UsageError(`nudgy ${parsed.command}: not implemented yet`);
     const { createContext } = await import("./cli/context");
     const command = await load();
-    return await command.run(parsed, createContext(process.env, process.cwd()));
+    const ctx = createContext(process.env, process.cwd());
+    const code = await command.run(parsed, ctx);
+    if (code === 0 && CHANGES_DUE.has(parsed.command)) {
+      // Refresh the prompt count now rather than on the daemon's next tick, up to 30s later
+      const { refreshStatus } = await import("./core/status");
+      try {
+        refreshStatus(ctx.db(), ctx.paths.status, ctx.clock.now());
+      } catch {}
+    }
+    return code;
   } catch (e) {
     if (e instanceof UsageError || e instanceof InputError) {
       console.error(`nudgy: ${e.message}`);

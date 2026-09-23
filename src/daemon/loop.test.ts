@@ -195,3 +195,10 @@ test("runLoop ticks until aborted", async () => {
   await done;
   expect(existsSync(paths.status)).toBe(true);
 });
+
+test("each tick touches the heartbeat file, which only the daemon writes", async () => {
+  const { deps, paths } = setup();
+  expect(existsSync(paths.tick)).toBe(false);
+  await tick(deps);
+  expect(existsSync(paths.tick)).toBe(true);
+});

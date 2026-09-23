@@ -3,6 +3,7 @@ import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import type { Context } from "../cli/context";
 import { editText } from "../cli/editor";
+import { refreshStatus } from "../core/status";
 import { App } from "./app";
 import { createStore } from "./store";
 
@@ -40,9 +41,15 @@ export function installGuards(
 
 export async function runTui(ctx: Context): Promise<number> {
   const origin = ctx.git(ctx.cwd);
+  const refresh = () => {
+    try {
+      refreshStatus(ctx.db(), ctx.paths.status, ctx.clock.now());
+    } catch {}
+  };
   const store = createStore(ctx.db(), ctx.clock, {
     config: ctx.config,
     origin,
+    onChange: refresh,
   });
   const renderer = await createCliRenderer({ exitOnCtrlC: true });
   return new Promise<number>((resolve) => {

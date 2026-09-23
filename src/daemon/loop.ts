@@ -1,11 +1,12 @@
 import type { Database } from "bun:sqlite";
-import { renameSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import { notificationFor, planAlerts } from "../core/alerts";
 import type { Clock } from "../core/clock";
 import { type Config, DEFAULT_CONFIG, loadConfig } from "../core/config";
 import { dueItems, markAlerted } from "../core/items";
 import { rollForwardDue } from "../core/lifecycle";
 import type { Paths } from "../core/paths";
+import { writeStatus } from "../core/status";
 import type { Notifier } from "./notifier";
 
 export type TickDeps = {
@@ -44,6 +45,8 @@ export async function tick(deps: TickDeps): Promise<void> {
       }
     }
     writeStatus(deps.paths.status, due.length);
+    // The CLI also rewrites status, so liveness gets its own file that only the daemon touches
+    writeFileSync(deps.paths.tick, `${new Date(now).toISOString()}\n`);
   } catch (e) {
     deps.log(`tick failed: ${(e as Error).message}`);
   }
@@ -56,13 +59,6 @@ function readConfig(deps: TickDeps): Config {
     deps.log(`${(e as Error).message}; using defaults`);
     return DEFAULT_CONFIG;
   }
-}
-
-// Rewritten every tick even when unchanged: its mtime is the daemon's heartbeat for `daemon status`
-function writeStatus(path: string, count: number) {
-  const tmp = `${path}.${process.pid}.tmp`;
-  writeFileSync(tmp, `${count}\n`);
-  renameSync(tmp, path);
 }
 
 export async function runLoop(

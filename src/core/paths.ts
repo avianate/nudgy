@@ -7,6 +7,7 @@ export type Paths = {
   config: string;
   log: string;
   status: string;
+  tick: string;
   bin: string;
   launchAgent: string;
   notifierApp: string;
@@ -26,6 +27,7 @@ export function resolvePaths(env: Env): Paths {
     config: join(home, "config.json"),
     log: join(home, "daemon.log"),
     status: join(home, "status"),
+    tick: join(home, "tick"),
     bin: join(user, ".local", "bin", "nudgy"),
     launchAgent: join(
       user,

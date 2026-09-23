@@ -90,7 +90,7 @@ describe("install, status, uninstall", () => {
     const { home, nudgy, env } = setup();
     expect(nudgy(["daemon", "status"], { env }).stdout).toContain("not loaded");
     nudgy(["daemon", "install"], { env });
-    writeFileSync(join(home, "status"), "0\n");
+    writeFileSync(join(home, "tick"), "");
     const out = nudgy(["daemon", "status"], { env }).stdout;
     expect(out).toContain("running (pid 4242)");
     expect(out).toMatch(/last tick\s+now/);
