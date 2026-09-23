@@ -49,8 +49,8 @@ export const HELPER_NOT_AUTHORIZED = 3;
 export function helperNotifier(executable: string): Notifier {
   return {
     kind: "helper",
-    async notify({ title, subtitle, body, sound }) {
-      const proc = Bun.spawn([executable, title, subtitle, body, sound], {
+    async notify({ title, subtitle, body, sound, id }) {
+      const proc = Bun.spawn([executable, title, subtitle, body, sound, id], {
         stdout: "ignore",
         stderr: "pipe",
       });

@@ -110,6 +110,7 @@ describe("tick", () => {
         title: "jot",
         subtitle: "",
         body: "3 reminders due — jot due",
+        id: "jot-summary",
         sound: "Glass",
       },
     ]);

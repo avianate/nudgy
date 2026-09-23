@@ -25,6 +25,7 @@ test("notification text goes to osascript as separate argv entries, unescaped", 
     subtitle: "back\\slash",
     body: "line one\nline two",
     sound: "Glass",
+    id: "x",
   });
   expect(argv[0]).toBe("/usr/bin/osascript");
   expect(argv.slice(3)).toEqual([
@@ -42,6 +43,7 @@ test("the script reads every field from argv", () => {
     subtitle: "s",
     body: "b",
     sound: "Glass",
+    id: "x",
   })[2];
   expect(script).toContain("item 1 of argv");
   expect(script).toContain("item 4 of argv");
@@ -55,20 +57,22 @@ test("the file notifier appends one JSON line per notification", async () => {
     subtitle: "",
     body: "b",
     sound: "Glass",
+    id: "one",
   });
   await notifier.notify({
     title: "c",
     subtitle: "s",
     body: "d",
     sound: "Ping",
+    id: "two",
   });
   const lines = readFileSync(path, "utf8")
     .trim()
     .split("\n")
     .map((l) => JSON.parse(l));
   expect(lines).toEqual([
-    { title: "a", subtitle: "", body: "b", sound: "Glass" },
-    { title: "c", subtitle: "s", body: "d", sound: "Ping" },
+    { title: "a", subtitle: "", body: "b", sound: "Glass", id: "one" },
+    { title: "c", subtitle: "s", body: "d", sound: "Ping", id: "two" },
   ]);
 });
 
@@ -114,17 +118,19 @@ const note: Notification = {
   subtitle: "back\\slash",
   body: "one\ntwo",
   sound: "Glass",
+  id: "jot-item-7",
 };
 
 test("the helper gets title, subtitle, body and sound as separate argv entries", async () => {
   const home = tempHome();
   const { exe, log } = fakeHelper(home);
   await helperNotifier(exe).notify(note);
-  expect(readFileSync(log, "utf8").split("\0").slice(0, 4)).toEqual([
+  expect(readFileSync(log, "utf8").split("\0").slice(0, 5)).toEqual([
     note.title,
     note.subtitle,
     note.body,
     note.sound,
+    "jot-item-7",
   ]);
 });
 

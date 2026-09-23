@@ -171,6 +171,7 @@ export async function run(_: Parsed, ctx: Context): Promise<number> {
     subtitle: "",
     body: "If you can see this, notifications work.",
     sound,
+    id: "jot-doctor",
   });
   for (const f of failures) ctx.out(`✗ helper     ${f}`);
   // Focus, preview settings or the osascript fallback can hide a banner without any error, so only the user can confirm it

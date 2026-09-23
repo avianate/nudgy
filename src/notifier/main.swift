@@ -1,11 +1,13 @@
-// jot-notify <title> <subtitle> <body> <sound>
+// jot-notify <title> <subtitle> <body> <sound> [<identifier>]
 // Posts one banner as "Jot" and exits. Launched with no arguments (a click on a banner) it just exits.
 import AppKit
 import Foundation
 import UserNotifications
 
 let args = CommandLine.arguments
-guard args.count == 5 else { exit(0) }
+guard args.count == 5 || args.count == 6 else { exit(0) }
+// Same identifier = same reminder: replace its notification rather than stacking another one
+let identifier = args.count == 6 && !args[5].isEmpty ? args[5] : UUID().uuidString
 
 let center = UNUserNotificationCenter.current()
 var status: Int32 = -1
@@ -25,7 +27,9 @@ center.requestAuthorization(options: [.alert, .sound]) { granted, error in
   content.subtitle = args[2]
   content.body = args[3]
   if !args[4].isEmpty { content.sound = UNNotificationSound(named: UNNotificationSoundName(args[4])) }
-  let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+  // Removing first makes the replacement present again (sound and all) instead of updating silently in place
+  center.removeDeliveredNotifications(withIdentifiers: [identifier])
+  let request = UNNotificationRequest(identifier: identifier, content: content, trigger: nil)
   center.add(request) { error in
     if let error { finish(4, "post failed: \(error.localizedDescription)") } else { finish(0) }
   }

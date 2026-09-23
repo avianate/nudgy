@@ -2,7 +2,13 @@ import { type Item, repoLabel, title } from "./items";
 
 export type AlertPlan = { kind: "none" | "single" | "summary"; items: Item[] };
 
-export type Banner = { title: string; subtitle: string; body: string };
+// id is stable per reminder (and for the summary) so a re-alert replaces the previous notification instead of stacking
+export type Banner = {
+  title: string;
+  subtitle: string;
+  body: string;
+  id: string;
+};
 
 const MIN = 60_000;
 
@@ -31,11 +37,13 @@ export function notificationFor(plan: AlertPlan): Banner {
       title: title(first.body),
       subtitle: repoLabel(first),
       body: `#${first.id} · jot done ${first.id} · jot snooze ${first.id}`,
+      id: `jot-item-${first.id}`,
     };
   }
   return {
     title: "jot",
     subtitle: "",
     body: `${plan.items.length} reminders due — jot due`,
+    id: "jot-summary",
   };
 }

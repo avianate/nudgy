@@ -92,6 +92,7 @@ describe("notificationFor", () => {
       title: "re-run the flaky suite",
       subtitle: "jot@main",
       body: "#7 · jot done 7 · jot snooze 7",
+      id: "jot-item-7",
     });
   });
 
@@ -105,6 +106,19 @@ describe("notificationFor", () => {
       title: "jot",
       subtitle: "",
       body: "3 reminders due — jot due",
+      id: "jot-summary",
     });
+  });
+
+  test("re-alerts reuse the same id so they replace rather than stack", () => {
+    const first = notificationFor({ kind: "single", items: [item({ id: 7 })] });
+    const again = notificationFor({
+      kind: "single",
+      items: [item({ id: 7, lastAlertedAt: NOW })],
+    });
+    expect(again.id).toBe(first.id);
+    expect(
+      notificationFor({ kind: "single", items: [item({ id: 8 })] }).id,
+    ).not.toBe(first.id);
   });
 });
