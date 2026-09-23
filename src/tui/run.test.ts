@@ -19,7 +19,7 @@ test("an uncaught error restores the terminal before reporting and exiting", () 
   const { calls, target } = fakeTarget();
   installGuards(target, proc);
   proc.emit("uncaughtException", new Error("boom"));
-  expect(calls).toEqual(["destroy", "write jot: Error: boom", "exit 1"]);
+  expect(calls).toEqual(["destroy", "write nudgy: Error: boom", "exit 1"]);
 });
 
 test("an unhandled rejection is treated the same way", () => {
@@ -27,7 +27,7 @@ test("an unhandled rejection is treated the same way", () => {
   const { calls, target } = fakeTarget();
   installGuards(target, proc);
   proc.emit("unhandledRejection", "nope");
-  expect(calls).toEqual(["destroy", "write jot: nope", "exit 1"]);
+  expect(calls).toEqual(["destroy", "write nudgy: nope", "exit 1"]);
 });
 
 test("SIGTERM restores the terminal and exits 143", () => {

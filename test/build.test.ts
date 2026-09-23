@@ -5,7 +5,7 @@ import { join } from "node:path";
 
 // The capture path must never load the TUI: follow only static imports from the entry chunk
 test("nothing statically reachable from main pulls in OpenTUI", async () => {
-  const outdir = mkdtempSync(join(tmpdir(), "jot-build-"));
+  const outdir = mkdtempSync(join(tmpdir(), "nudgy-build-"));
   const result = await Bun.build({
     entrypoints: ["src/main.ts"],
     outdir,

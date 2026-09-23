@@ -5,9 +5,9 @@ import { join, resolve } from "node:path";
 const BUDGET_MS = 100;
 const RUNS = 10;
 
-const bin = resolve("dist/jot");
-// Never the real ~/.jot: this writes a note per run
-const home = realpathSync(mkdtempSync(join(tmpdir(), "jot-bench-")));
+const bin = resolve("dist/nudgy");
+// Never the real ~/.nudgy: this writes a note per run
+const home = realpathSync(mkdtempSync(join(tmpdir(), "nudgy-bench-")));
 const repo = join(home, "repo");
 const git = (...args: string[]) =>
   Bun.spawnSync(["git", "-c", "user.name=b", "-c", "user.email=b@b", ...args], {
@@ -17,7 +17,7 @@ Bun.spawnSync(["mkdir", repo]);
 git("init", "-q", "-b", "main");
 git("commit", "-q", "--allow-empty", "-m", "init");
 
-const env = { ...process.env, JOT_HOME: home };
+const env = { ...process.env, NUDGY_HOME: home };
 const capture = () =>
   Bun.spawnSync([bin, "bench note"], { cwd: repo, env, stdout: "ignore" });
 

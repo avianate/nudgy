@@ -1,4 +1,4 @@
-// Renders the Jot Notifier app icon as an asset catalog for actool: xcrun swift scripts/icon.swift <Assets.xcassets>
+// Renders the Nudgy Notifier app icon as an asset catalog for actool: xcrun swift scripts/icon.swift <Assets.xcassets>
 import AppKit
 
 let catalog = CommandLine.arguments[1]
@@ -23,9 +23,9 @@ func render(_ px: Int) -> Data {
 
   let font = NSFont.systemFont(ofSize: 600 * s, weight: .heavy)
   let rounded = font.fontDescriptor.withDesign(.rounded).flatMap { NSFont(descriptor: $0, size: 600 * s) } ?? font
-  let glyph = NSAttributedString(string: "j", attributes: [.font: rounded, .foregroundColor: NSColor.white])
+  let glyph = NSAttributedString(string: "n", attributes: [.font: rounded, .foregroundColor: NSColor.white])
   let size = glyph.size()
-  glyph.draw(at: NSPoint(x: (1024 * s - size.width) / 2 - 20 * s, y: (1024 * s - size.height) / 2 - 10 * s))
+  glyph.draw(at: NSPoint(x: (1024 * s - size.width) / 2 + 6 * s, y: (1024 * s - size.height) / 2 + 20 * s))
 
   let dot = NSRect(x: 650 * s, y: 650 * s, width: 190 * s, height: 190 * s)
   NSColor(srgbRed: 0.99, green: 0.72, blue: 0.25, alpha: 1).setFill()

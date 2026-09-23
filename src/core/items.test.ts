@@ -20,13 +20,13 @@ test("createItem stores the body, git context and timestamps", () => {
   const db = openDb(":memory:");
   const item = createItem(
     db,
-    { body: "check the migration landed", repo: "/src/jot", branch: "main" },
+    { body: "check the migration landed", repo: "/src/nudgy", branch: "main" },
     1_000,
   );
   expect(item).toEqual({
     id: 1,
     body: "check the migration landed",
-    repo: "/src/jot",
+    repo: "/src/nudgy",
     branch: "main",
     createdAt: 1_000,
     updatedAt: 1_000,

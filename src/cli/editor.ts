@@ -7,9 +7,9 @@ import type { Env } from "../core/paths";
 export function editText(
   initial: string,
   env: Env,
-  name = "jot.md",
+  name = "nudgy.md",
 ): string | null {
-  const dir = mkdtempSync(join(tmpdir(), "jot-edit-"));
+  const dir = mkdtempSync(join(tmpdir(), "nudgy-edit-"));
   const file = join(dir, name);
   try {
     writeFileSync(file, initial);

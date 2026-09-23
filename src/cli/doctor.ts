@@ -30,7 +30,7 @@ function sameFile(a: string, b: string): boolean {
 function firstOnPath(env: Context["env"]): string | null {
   for (const dir of (env.PATH ?? "").split(":")) {
     if (!dir) continue;
-    const candidate = join(dir, "jot");
+    const candidate = join(dir, "nudgy");
     try {
       accessSync(candidate, constants.X_OK);
       return candidate;
@@ -57,7 +57,7 @@ async function runChecks(ctx: Context): Promise<Check[]> {
     ok: onPath !== null && sameFile(onPath, paths.bin),
     detail:
       onPath === null
-        ? "jot is not on PATH"
+        ? "nudgy is not on PATH"
         : sameFile(onPath, paths.bin)
           ? onPath
           : `PATH finds ${onPath} first`,
@@ -114,7 +114,7 @@ async function runChecks(ctx: Context): Promise<Check[]> {
     label: "daemon",
     ok: loaded && pid !== null && ticking,
     detail: !loaded
-      ? "not loaded; run jot daemon install"
+      ? "not loaded; run nudgy daemon install"
       : `${pid ? `running (pid ${pid})` : "loaded, not running"}, last tick ${lastTick === null ? "never" : relative(lastTick, now)}`,
   });
 
@@ -167,11 +167,11 @@ export async function run(_: Parsed, ctx: Context): Promise<number> {
   } catch {}
   const failures: string[] = [];
   await notifierFromEnv(ctx.env, ctx.paths, (m) => failures.push(m)).notify({
-    title: "jot doctor",
+    title: "nudgy doctor",
     subtitle: "",
     body: "If you can see this, notifications work.",
     sound,
-    id: "jot-doctor",
+    id: "nudgy-doctor",
   });
   for (const f of failures) ctx.out(`✗ helper     ${f}`);
   // Focus, preview settings or the osascript fallback can hide a banner without any error, so only the user can confirm it
@@ -181,7 +181,7 @@ export async function run(_: Parsed, ctx: Context): Promise<number> {
   if (!seen) {
     ctx.out("✗ banner     not confirmed");
     ctx.out(
-      "  Fix: System Settings → Notifications → Jot → Allow notifications, Show previews: Always.",
+      "  Fix: System Settings → Notifications → Nudgy → Allow notifications, Show previews: Always.",
     );
     ctx.out(
       "  (osascript fallback: System Settings → Notifications → Script Editor → Allow.)",

@@ -7,7 +7,7 @@ import { absolute, relative } from "./format";
 
 export async function run(parsed: Parsed, ctx: Context): Promise<number> {
   const body = parsed.positionals.join(" ").trim();
-  if (!body) throw new UsageError('nothing to capture: jot "<text>"');
+  if (!body) throw new UsageError('nothing to capture: nudgy "<text>"');
   const now = ctx.clock.now();
   const when = parsed.flags.remind;
   // Loaded only with -r so chrono stays off the plain capture path

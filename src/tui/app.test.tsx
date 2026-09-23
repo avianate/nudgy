@@ -19,7 +19,7 @@ test("opens on the Due tab with the first item selected and its detail shown", a
   const frame = a.frame();
   expect(frame).toContain("[Due]");
   expect(selectedLine(frame)).toContain("overdue thing");
-  expect(frame).toContain("jot@main");
+  expect(frame).toContain("nudgy@main");
   expect(frame).toContain("detail");
   expect(frame).not.toContain("plain note");
 });

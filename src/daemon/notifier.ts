@@ -46,8 +46,8 @@ export function fileNotifier(path: string): Notifier {
 
 export const HELPER_NOT_AUTHORIZED = 3;
 
-// A clicked action relaunches the helper with no daemon around, so the payload says how to reach jot
-export type HelperTarget = { jotBin: string; jotHome: string };
+// A clicked action relaunches the helper with no daemon around, so the payload says how to reach nudgy
+export type HelperTarget = { nudgyBin: string; nudgyHome: string };
 
 export function helperNotifier(
   executable: string,
@@ -75,10 +75,10 @@ export function helperNotifier(
       const detail = (await new Response(proc.stderr).text()).trim();
       if (code === HELPER_NOT_AUTHORIZED) {
         throw new Error(
-          `Jot is not allowed to notify (System Settings → Notifications → Jot): ${detail}`,
+          `Nudgy is not allowed to notify (System Settings → Notifications → Nudgy): ${detail}`,
         );
       }
-      throw new Error(`jot-notify exited ${code}: ${detail}`);
+      throw new Error(`nudgy-notify exited ${code}: ${detail}`);
     },
   };
 }
@@ -109,17 +109,20 @@ export function notifierFromEnv(
   paths: Paths,
   log: (message: string) => void = () => {},
 ): Notifier {
-  const spec = env.JOT_NOTIFIER;
+  const spec = env.NUDGY_NOTIFIER;
   if (spec?.startsWith("file:") && spec.length > 5)
     return fileNotifier(spec.slice(5));
   if (spec === "osascript") return osascriptNotifier;
   if (spec !== undefined)
     throw new Error(
-      `JOT_NOTIFIER must be file:<path> or osascript, got "${spec}"`,
+      `NUDGY_NOTIFIER must be file:<path> or osascript, got "${spec}"`,
     );
   if (!existsSync(paths.notifier)) return osascriptNotifier;
   return withFallback(
-    helperNotifier(paths.notifier, { jotBin: paths.bin, jotHome: paths.home }),
+    helperNotifier(paths.notifier, {
+      nudgyBin: paths.bin,
+      nudgyHome: paths.home,
+    }),
     osascriptNotifier,
     log,
   );

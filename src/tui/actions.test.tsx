@@ -108,7 +108,7 @@ test("typing into the add prompt never triggers shortcuts", async () => {
   expect(a.quit()).toBe(false);
   expect(getItem(a.db, 1)?.doneAt).toBeNull();
   const added = listItems(a.db).find((i) => i.body === "quid");
-  expect(added).toMatchObject({ repo: "/src/jot", branch: "main" });
+  expect(added).toMatchObject({ repo: "/src/nudgy", branch: "main" });
   expect(a.frame()).toContain("added #5");
 });
 

@@ -15,7 +15,7 @@ export function run({ positionals, flags }: Parsed, ctx: Context): number {
     return 0;
   }
   const when = positionals.slice(1).join(" ").trim();
-  if (!when) throw new UsageError("jot remind <id> <when> (or --clear)");
+  if (!when) throw new UsageError("nudgy remind <id> <when> (or --clear)");
   const updated = setReminder(ctx.db(), item.id, parseReminder(when, now), now);
   const at = updated?.remindAt ?? now;
   ctx.out(`#${item.id} reminds ${absolute(at)} (${relative(at, now)})`);

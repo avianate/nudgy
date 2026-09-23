@@ -17,18 +17,23 @@ export type Env = Record<string, string | undefined>;
 
 export function resolvePaths(env: Env): Paths {
   const user = env.HOME || homedir();
-  const home = env.JOT_HOME ? resolve(env.JOT_HOME) : join(user, ".jot");
-  // Always under ~/.jot, even with JOT_HOME set: Notification Center permission belongs to this one bundle
-  const notifierApp = join(user, ".jot", "Jot Notifier.app");
+  const home = env.NUDGY_HOME ? resolve(env.NUDGY_HOME) : join(user, ".nudgy");
+  // Always under ~/.nudgy, even with NUDGY_HOME set: Notification Center permission belongs to this one bundle
+  const notifierApp = join(user, ".nudgy", "Nudgy Notifier.app");
   return {
     home,
-    db: join(home, "jot.db"),
+    db: join(home, "nudgy.db"),
     config: join(home, "config.json"),
     log: join(home, "daemon.log"),
     status: join(home, "status"),
-    bin: join(user, ".local", "bin", "jot"),
-    launchAgent: join(user, "Library", "LaunchAgents", "dev.jot.daemon.plist"),
+    bin: join(user, ".local", "bin", "nudgy"),
+    launchAgent: join(
+      user,
+      "Library",
+      "LaunchAgents",
+      "io.github.avianate.nudgy.daemon.plist",
+    ),
     notifierApp,
-    notifier: join(notifierApp, "Contents", "MacOS", "jot-notify"),
+    notifier: join(notifierApp, "Contents", "MacOS", "nudgy-notify"),
   };
 }

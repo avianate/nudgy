@@ -48,7 +48,7 @@ function migrate(db: Database) {
   };
   if (current > SCHEMA_VERSION) {
     throw new Error(
-      `database schema v${current} is newer than this jot (v${SCHEMA_VERSION}); upgrade jot`,
+      `database schema v${current} is newer than this nudgy (v${SCHEMA_VERSION}); upgrade nudgy`,
     );
   }
   for (let v = current; v < SCHEMA_VERSION; v++) {

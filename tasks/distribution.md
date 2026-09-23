@@ -10,6 +10,12 @@ Phase 4 for anything a user downloads through a browser.
 
 ## Phase 1: Identity (do first; painful to change later)
 
+**Decided 2026-09-23: `nudgy`.** It's free on npm and Homebrew, and has no macOS command clash.
+The bundle ID is `io.github.avianate.nudgy`, and the LaunchAgent label is
+`io.github.avianate.nudgy.daemon`. The data dir is `~/.nudgy`, the env vars are `NUDGY_*`,
+and the helper is `Nudgy Notifier.app`, shown as "Nudgy", with an "n" icon. Code, spec and tests
+were renamed. The history files in `tasks/` keep the old name.
+
 The name and the bundle ID become permanent once other people install the tool.
 
 | Item | Today | Problem | Target |

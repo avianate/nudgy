@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import type { Env, Paths } from "../core/paths";
 
-export const LABEL = "dev.jot.daemon";
+export const LABEL = "io.github.avianate.nudgy.daemon";
 
 export type JobState = { loaded: boolean; pid: number | null };
 
@@ -30,7 +30,7 @@ export function plistXml(paths: Paths): string {
   </array>
   <key>EnvironmentVariables</key>
   <dict>
-    <key>JOT_HOME</key>
+    <key>NUDGY_HOME</key>
     <string>${escapeXml(paths.home)}</string>
   </dict>
   <key>RunAtLoad</key>
@@ -111,11 +111,11 @@ export function fileLaunchctl(path: string): Launchctl {
 }
 
 export function launchctlFromEnv(env: Env): Launchctl {
-  const spec = env.JOT_LAUNCHCTL;
+  const spec = env.NUDGY_LAUNCHCTL;
   if (spec === undefined) return realLaunchctl();
   if (spec.startsWith("file:") && spec.length > 5)
     return fileLaunchctl(spec.slice(5));
-  throw new Error(`JOT_LAUNCHCTL must be file:<path>, got "${spec}"`);
+  throw new Error(`NUDGY_LAUNCHCTL must be file:<path>, got "${spec}"`);
 }
 
 export async function waitUntilUnloaded(

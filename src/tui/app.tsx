@@ -250,7 +250,7 @@ export function App({
       <box flexDirection="row" flexGrow={1}>
         <box
           border
-          title=" jot "
+          title=" nudgy "
           width="50%"
           flexDirection="column"
           paddingLeft={1}

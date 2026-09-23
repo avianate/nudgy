@@ -3,23 +3,23 @@ import { chmodSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { openDb } from "../../src/core/db";
 import { createItem } from "../../src/core/items";
-import { jotHome } from "./helpers";
+import { nudgyHome } from "./helpers";
 
 const MAIN = resolve(import.meta.dir, "../../src/main.ts");
 const NOW = Date.parse("2026-09-22T14:00:00Z");
 const H = 3_600_000;
 
 function setup() {
-  const ctx = jotHome();
+  const ctx = nudgyHome();
   const bin = join(ctx.home, "bin");
   mkdirSync(bin);
-  writeFileSync(join(bin, "jot"), `#!/bin/sh\nexec bun ${MAIN} -- "$@"\n`);
-  chmodSync(join(bin, "jot"), 0o755);
+  writeFileSync(join(bin, "nudgy"), `#!/bin/sh\nexec bun ${MAIN} -- "$@"\n`);
+  chmodSync(join(bin, "nudgy"), 0o755);
   const env = {
     ...process.env,
     TZ: "America/New_York",
-    JOT_HOME: ctx.home,
-    JOT_NOW: String(NOW),
+    NUDGY_HOME: ctx.home,
+    NUDGY_NOW: String(NOW),
     PATH: `${bin}:${process.env.PATH}`,
   };
   const zsh = (
@@ -44,13 +44,13 @@ function setup() {
     };
   };
   const hookFile = join(ctx.home, "hook.zsh");
-  writeFileSync(hookFile, ctx.jot(["hook", "zsh"]).stdout);
+  writeFileSync(hookFile, ctx.nudgy(["hook", "zsh"]).stdout);
   return { ...ctx, zsh, hookFile };
 }
 
 test("a new interactive shell shows overdue and upcoming items", () => {
   const { home, zsh, hookFile } = setup();
-  const db = openDb(join(home, "jot.db"));
+  const db = openDb(join(home, "nudgy.db"));
   createItem(
     db,
     { body: "overdue thing", repo: null, branch: null, remindAt: NOW - H },
@@ -74,11 +74,11 @@ test("a new interactive shell shows overdue and upcoming items", () => {
 });
 
 test("the window follows hookWindowHours from config", () => {
-  const { home, jot, zsh } = setup();
+  const { home, nudgy, zsh } = setup();
   writeFileSync(join(home, "config.json"), '{"hookWindowHours": 12}');
   const hookFile = join(home, "hook12.zsh");
-  writeFileSync(hookFile, jot(["hook", "zsh"]).stdout);
-  const db = openDb(join(home, "jot.db"));
+  writeFileSync(hookFile, nudgy(["hook", "zsh"]).stdout);
+  const db = openDb(join(home, "nudgy.db"));
   createItem(
     db,
     { body: "far thing", repo: null, branch: null, remindAt: NOW + 10 * H },
@@ -97,9 +97,9 @@ test("with nothing due the new shell prints nothing at all", () => {
   expect(result.stderr).toBe("");
 });
 
-test("a non-interactive shell never runs jot", () => {
+test("a non-interactive shell never runs nudgy", () => {
   const { home, zsh, hookFile } = setup();
-  const db = openDb(join(home, "jot.db"));
+  const db = openDb(join(home, "nudgy.db"));
   createItem(
     db,
     { body: "overdue thing", repo: null, branch: null, remindAt: NOW - H },
@@ -109,26 +109,26 @@ test("a non-interactive shell never runs jot", () => {
   expect(zsh(`source ${hookFile}`).stdout).toBe("");
 });
 
-test("jot_prompt_segment shows the due count using builtins only", () => {
+test("nudgy_prompt_segment shows the due count using builtins only", () => {
   const { home, zsh, hookFile } = setup();
   writeFileSync(join(home, "status"), "3\n");
   // An empty PATH makes any spawned command fail, so a clean result proves no process was started
-  const result = zsh(`source ${hookFile}; jot_prompt_segment`, { path: "" });
+  const result = zsh(`source ${hookFile}; nudgy_prompt_segment`, { path: "" });
   expect(result.stderr).toBe("");
   expect(result.stdout).toBe("⏰3");
 });
 
-test("jot_prompt_segment is silent at zero or with no status file", () => {
+test("nudgy_prompt_segment is silent at zero or with no status file", () => {
   const { home, zsh, hookFile } = setup();
   expect(
-    zsh(`source ${hookFile}; jot_prompt_segment`, { path: "" }).stdout,
+    zsh(`source ${hookFile}; nudgy_prompt_segment`, { path: "" }).stdout,
   ).toBe("");
   writeFileSync(join(home, "status"), "0\n");
   expect(
-    zsh(`source ${hookFile}; jot_prompt_segment`, { path: "" }).stdout,
+    zsh(`source ${hookFile}; nudgy_prompt_segment`, { path: "" }).stdout,
   ).toBe("");
 });
 
-test("jot hook for another shell is a usage error", () => {
-  expect(jotHome().jot(["hook", "bash"]).code).toBe(2);
+test("nudgy hook for another shell is a usage error", () => {
+  expect(nudgyHome().nudgy(["hook", "bash"]).code).toBe(2);
 });

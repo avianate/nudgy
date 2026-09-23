@@ -1,16 +1,16 @@
 {
-  "name": "jot",
+  "name": "nudgy",
   "version": "0.1.0",
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "JOT_HOME=./.jot-dev bun src/main.ts",
+    "dev": "NUDGY_HOME=./.nudgy-dev bun src/main.ts",
     "typecheck": "tsc --noEmit",
     "check": "biome check --write .",
     "build": "bun scripts/build.ts",
     "install:local": "bun scripts/build.ts && bun scripts/installLocal.ts",
     "coverage:core": "bun scripts/coverageCore.ts",
-    "test:bin": "bun scripts/build.ts && JOT_E2E_BIN=dist/jot bun test test/cli"
+    "test:bin": "bun scripts/build.ts && NUDGY_E2E_BIN=dist/nudgy bun test test/cli"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5",

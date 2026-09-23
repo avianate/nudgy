@@ -1,8 +1,8 @@
-# Spec: jot
+# Spec: nudgy
 
 ## Objective
 
-`jot` is a terminal-only notes and reminders tool for macOS, for development work.
+`nudgy` is a terminal-only notes and reminders tool for macOS, for development work.
 Capture a thought without leaving the shell, attach a natural-language reminder to it,
 and get a macOS banner when it comes due. It is a from-scratch take on
 [nikki](https://nikhil-gautam-dev.github.io/nikki/) (Linux-only: systemd + `notify-send`)
@@ -16,15 +16,15 @@ are hard to miss, and nothing requires leaving the terminal except the banner it
 
 ### User stories
 
-- As a dev, I type `jot "check the migration landed"` and it is saved in under 100ms,
+- As a dev, I type `nudgy "check the migration landed"` and it is saved in under 100ms,
   tagged with the repo and branch I'm in.
-- I type `jot "re-run the flaky suite" -r "in 2 hours"` and a macOS banner appears in
+- I type `nudgy "re-run the flaky suite" -r "in 2 hours"` and a macOS banner appears in
   two hours, and keeps re-appearing every 15 minutes until I mark it done or snooze it.
-- I type `jot "standup notes" -r "every weekday 9am"` and get a banner each weekday at 9.
+- I type `nudgy "standup notes" -r "every weekday 9am"` and get a banner each weekday at 9.
 - I open a new terminal tab and see what's overdue and what's due soon.
-- I type `jot` with no arguments and get a TUI to browse, search, edit, complete and
+- I type `nudgy` with no arguments and get a TUI to browse, search, edit, complete and
   snooze everything.
-- I type `jot ls --here` and see only items captured in the current repo.
+- I type `nudgy ls --here` and see only items captured in the current repo.
 - My laptop sleeps through three reminders; on wake I get one banner summarising them,
   not three.
 
@@ -43,8 +43,8 @@ notification actions beyond Done / Snooze / Remind later, Homebrew dependencies 
 | Storage | `bun:sqlite` (system SQLite 3.54, FTS5 verified working) | WAL mode, `busy_timeout` 5000 |
 | Date parsing | `chrono-node` ^2.10 | One-shot times and the time part of recurrence rules only |
 | TUI | `@opentui/core` + `@opentui/react` **pinned exactly** (0.5.12) + `react` ^19.2 | Pre-1.0 — upgrades are deliberate |
-| Background | launchd LaunchAgent running `jot daemon run` | `KeepAlive`, `RunAtLoad` |
-| Notifications | `Jot Notifier.app`: a Swift helper (`UNUserNotificationCenter`) built with the Xcode toolchain; `osascript display notification` as fallback | Banners show as "Jot"; clicking dismisses. No Homebrew |
+| Background | launchd LaunchAgent running `nudgy daemon run` | `KeepAlive`, `RunAtLoad` |
+| Notifications | `Nudgy Notifier.app`: a Swift helper (`UNUserNotificationCenter`) built with the Xcode toolchain; `osascript display notification` as fallback | Banners show as "Nudgy"; clicking dismisses. No Homebrew |
 | Lint / format | Biome ^2.5 | |
 | Tests | `bun test` | |
 
@@ -59,7 +59,7 @@ There is one entity: an **item**. Every item is a note. An item may carry a remi
 (`remind_at`), and a reminder may recur.
 
 - The first line of the body is the title. The rest is Markdown.
-- On capture, jot records the git repo root (`git rev-parse --show-toplevel`) and branch
+- On capture, nudgy records the git repo root (`git rev-parse --show-toplevel`) and branch
   (`git rev-parse --abbrev-ref HEAD`) of the current directory, or null outside a repo.
   The repo is displayed by its basename.
 - IDs are short integers, shown everywhere.
@@ -72,7 +72,7 @@ There is one entity: an **item**. Every item is a note. An item may carry a remi
 - The daemon polls every 30 seconds. When it finds due reminders that have never been
   alerted, or were last alerted at least `realertMinutes` ago (default 15), it alerts.
 - **Batching:** if more than one reminder needs alerting in a single tick (typically
-  after wake from sleep), send **one** summary banner ("3 reminders due — jot due"),
+  after wake from sleep), send **one** summary banner ("3 reminders due — nudgy due"),
   not one per reminder. A single reminder gets its own banner, with its title and repo.
 - Alerting updates `last_alerted_at`, never `remind_at`.
 - **Snooze** sets `remind_at = now + duration` (default 10m) and clears
@@ -86,17 +86,17 @@ There is one entity: an **item**. Every item is a note. An item may carry a remi
 - Alerts are up to 30 seconds late by design.
 - A single reminder's alert shows its title, its repo and the rest of the note text, or the due
   time for a one-line note. It has three actions:
-  - **Done**, which runs `jot done <id>`
-  - **Snooze** (`defaultSnooze`), which runs `jot snooze <id>`. Clicking the alert itself does the
+  - **Done**, which runs `nudgy done <id>`
+  - **Snooze** (`defaultSnooze`), which runs `nudgy snooze <id>`. Clicking the alert itself does the
     same. Closing it with ✕ changes nothing, and it re-alerts after `realertMinutes`.
-  - **Remind later…**, a text field that runs `jot remind <id> <text>`
+  - **Remind later…**, a text field that runs `nudgy remind <id> <text>`
 
   The helper app runs the command when the button is clicked. A failure, such as unparseable
   text, posts a follow-up alert with the error. The summary alert has no actions.
 
 ### Recurrence grammar
 
-chrono-node does not parse recurrence, so jot has its own small grammar. A `-r` value
+chrono-node does not parse recurrence, so nudgy has its own small grammar. A `-r` value
 starting with `every` is a recurrence rule. Anything else goes to chrono as a one-shot time.
 
 ```
@@ -128,65 +128,65 @@ Stored as UTC epoch milliseconds, displayed in the Mac's local time zone. Relati
 ### CLI surface
 
 ```
-jot                                   open the TUI
-jot "<text>" [-r <when>]              capture (shorthand for `jot add`)
-jot add <text...> [-r <when>]         capture; use for text that collides with a subcommand
-jot -- <text...>                      same, for literal text
-jot ls [--here] [--done] [--reminders] [--json]
-jot today | yesterday | tomorrow [--here] [--json]   items created that day + reminders due that day
-jot due [--json]                      overdue + due in the next 24h
-jot search <query> [--here] [--json]  FTS5 over body text
-jot show <id> [--json]
-jot edit <id>                         open the body in $EDITOR (falls back to vi)
-jot remind <id> <when>                set/replace a reminder (one-shot or `every …`)
-jot remind <id> --clear
-jot snooze <id> [<duration>]          default 10m; accepts chrono durations ("1h", "tomorrow 9am")
-jot done <id>
-jot reopen <id>
-jot rm <id> [-y]
-jot daemon run                        foreground loop (what launchd runs)
-jot daemon install | uninstall | status
-jot hook zsh                          print the zsh hook; user adds `eval "$(jot hook zsh)"`
-jot doctor                            environment checks (see below)
-jot config                            open ~/.jot/config.json in $EDITOR
-jot --version | --help
+nudgy                                   open the TUI
+nudgy "<text>" [-r <when>]              capture (shorthand for `nudgy add`)
+nudgy add <text...> [-r <when>]         capture; use for text that collides with a subcommand
+nudgy -- <text...>                      same, for literal text
+nudgy ls [--here] [--done] [--reminders] [--json]
+nudgy today | yesterday | tomorrow [--here] [--json]   items created that day + reminders due that day
+nudgy due [--json]                      overdue + due in the next 24h
+nudgy search <query> [--here] [--json]  FTS5 over body text
+nudgy show <id> [--json]
+nudgy edit <id>                         open the body in $EDITOR (falls back to vi)
+nudgy remind <id> <when>                set/replace a reminder (one-shot or `every …`)
+nudgy remind <id> --clear
+nudgy snooze <id> [<duration>]          default 10m; accepts chrono durations ("1h", "tomorrow 9am")
+nudgy done <id>
+nudgy reopen <id>
+nudgy rm <id> [-y]
+nudgy daemon run                        foreground loop (what launchd runs)
+nudgy daemon install | uninstall | status
+nudgy hook zsh                          print the zsh hook; user adds `eval "$(nudgy hook zsh)"`
+nudgy doctor                            environment checks (see below)
+nudgy config                            open ~/.nudgy/config.json in $EDITOR
+nudgy --version | --help
 ```
 
 **Reserved words** (a bare first argument matching one of these is a subcommand, not a
 note): `add ls today yesterday tomorrow due search show edit remind snooze done reopen rm
 daemon hook doctor config help`. To capture one of these words literally, use
-`jot add today` or `jot -- today`.
+`nudgy add today` or `nudgy -- today`.
 
 ### Daemon install
 
-- The plist is `~/Library/LaunchAgents/dev.jot.daemon.plist`. `ProgramArguments` names the
-  **canonical install path** `~/.local/bin/jot`, never `process.execPath` of whatever
-  binary ran the install. Logs go to `~/.jot/daemon.log`.
-- Use `launchctl bootstrap gui/$UID <plist>` / `launchctl bootout gui/$UID/dev.jot.daemon`,
+- The plist is `~/Library/LaunchAgents/io.github.avianate.nudgy.daemon.plist`. `ProgramArguments` names the
+  **canonical install path** `~/.local/bin/nudgy`, never `process.execPath` of whatever
+  binary ran the install. Logs go to `~/.nudgy/daemon.log`.
+- Use `launchctl bootstrap gui/$UID <plist>` / `launchctl bootout gui/$UID/io.github.avianate.nudgy.daemon`,
   not the deprecated `load`/`unload`.
 - `status` reports loaded/not loaded, PID, and the last tick time the daemon wrote.
 
 ### Shell hook
 
-- `jot hook zsh` prints a snippet. jot never edits `~/.zshrc` itself.
+- `nudgy hook zsh` prints a snippet. nudgy never edits `~/.zshrc` itself.
 - On a new interactive shell the snippet prints overdue items and items due within the
   next `hookWindowHours` (default 4). It stays silent when there are none.
-- It also defines `jot_prompt_segment`, which reads `~/.jot/status` (a count the daemon
+- It also defines `nudgy_prompt_segment`, which reads `~/.nudgy/status` (a count the daemon
   writes each tick) using zsh builtins only. **No process spawn per prompt.**
 
 ### doctor
 
-Checks and reports: binary at `~/.local/bin/jot` and on `PATH`; valid code signature;
-`~/.jot/Jot Notifier.app` present and validly signed (otherwise banners fall back to osascript);
+Checks and reports: binary at `~/.local/bin/nudgy` and on `PATH`; valid code signature;
+`~/.nudgy/Nudgy Notifier.app` present and validly signed (otherwise banners fall back to osascript);
 LaunchAgent loaded and ticking; database opens and migrations are current; `$EDITOR` set.
 
 Then it sends a test banner and **asks the user whether it appeared**. The helper reports a
 refused authorization, but a banner can still be hidden by Focus or preview settings (and the
 osascript fallback exits 0 even when blocked), so delivery is only confirmed by the user. If the
-answer is no, it prints the fix: System Settings → Notifications → Jot → Allow, Show previews:
+answer is no, it prints the fix: System Settings → Notifications → Nudgy → Allow, Show previews:
 Always (or → Script Editor for the fallback).
 
-### Config (`~/.jot/config.json`)
+### Config (`~/.nudgy/config.json`)
 
 ```json
 { "realertMinutes": 15, "defaultSnooze": "10m", "hookWindowHours": 4, "sound": "Glass" }
@@ -196,7 +196,7 @@ Missing keys fall back to defaults. An invalid file is reported, never overwritt
 
 ### TUI
 
-`jot` with no args opens a two-pane layout:
+`nudgy` with no args opens a two-pane layout:
 
 - **Left:** a list with tabs — Due · Today · All · Done.
 - **Right:** the selected item rendered as Markdown, with its repo, branch, reminder and
@@ -210,23 +210,23 @@ Missing keys fall back to defaults. An invalid file is reported, never overwritt
 
 ```bash
 bun install
-bun run dev -- <args>          # bun src/main.ts <args>, uses JOT_HOME=./.jot-dev
+bun run dev -- <args>          # bun src/main.ts <args>, uses NUDGY_HOME=./.nudgy-dev
 bun test                       # all tests
 bun test --coverage
 bun run typecheck              # tsc --noEmit
 bun run check                  # biome check --write .
-bun run build                  # scripts/build.ts: compile → dist/jot, codesign; swiftc → dist/Jot Notifier.app, codesign
-bun run install:local          # build, atomically install jot and ~/.jot/Jot Notifier.app (lsregister), kickstart the daemon if loaded
+bun run build                  # scripts/build.ts: compile → dist/nudgy, codesign; swiftc → dist/Nudgy Notifier.app, codesign
+bun run install:local          # build, atomically install nudgy and ~/.nudgy/Nudgy Notifier.app (lsregister), kickstart the daemon if loaded
 ```
 
 **`install:local` must replace the binary atomically.** Copy to
-`~/.local/bin/.jot.tmp`, `mv` it over `~/.local/bin/jot`, then
-`launchctl kickstart -k gui/$UID/dev.jot.daemon` if the agent is loaded. A `cp` in
+`~/.local/bin/.nudgy.tmp`, `mv` it over `~/.local/bin/nudgy`, then
+`launchctl kickstart -k gui/$UID/io.github.avianate.nudgy.daemon` if the agent is loaded. A `cp` in
 place over a signed binary gets it SIGKILLed on the next launch on Apple Silicon.
 
 ## Data
 
-`~/.jot/` (overridable with `JOT_HOME`): `jot.db`, `config.json`, `daemon.log`,
+`~/.nudgy/` (overridable with `NUDGY_HOME`): `nudgy.db`, `config.json`, `daemon.log`,
 `notifier.log` (clicked notification actions), `status`.
 
 ```sql
@@ -271,7 +271,7 @@ src/
     launchd.ts       plist generation + Launchctl interface
   tui/               OpenTUI React app and components
   shell/hook.zsh     hook template
-  notifier/          Swift helper: main.swift + Info.plist → Jot Notifier.app
+  notifier/          Swift helper: main.swift + Info.plist → Nudgy Notifier.app
 scripts/build.ts
 *.test.ts            colocated next to the module under test
 test/cli/            end-to-end CLI tests
@@ -309,7 +309,7 @@ export function osascriptNotifier(sound: string): Notifier {
 
 - **Runner:** `bun test`. Tests are colocated (`recurrence.test.ts` beside `recurrence.ts`).
   End-to-end CLI tests live in `test/cli/`.
-- **Isolation, always:** every test runs with a temp `JOT_HOME`, an injected clock, and
+- **Isolation, always:** every test runs with a temp `NUDGY_HOME`, an injected clock, and
   `TZ=America/New_York` pinned in `bunfig.toml`/the test preload, so DST cases are
   deterministic. The notifier and launchctl are always fakes. **No test may show a real
   banner or load a real LaunchAgent.**
@@ -323,7 +323,7 @@ export function osascriptNotifier(sound: string): Notifier {
   - osascript argv construction (quotes, newlines and backslashes pass through unescaped)
   - arg parsing and reserved words
   - hook output
-- **End-to-end CLI:** spawn `bun src/main.ts` against a temp `JOT_HOME`. Covers
+- **End-to-end CLI:** spawn `bun src/main.ts` against a temp `NUDGY_HOME`. Covers
   capture → ls → remind → done → search, `--json` output shapes, and exit codes.
 - **TUI:** OpenTUI's `test-utils` for navigation, tab switching, done/snooze keys and
   the search filter.
@@ -346,30 +346,30 @@ export function osascriptNotifier(sound: string): Notifier {
   - Adding or upgrading any dependency, **especially OpenTUI**.
   - Changing the DB schema once real data exists.
   - Changing the data directory, LaunchAgent label or install path.
-  - Anything that would touch files outside `~/.jot` (which includes `~/.jot/Jot Notifier.app`),
-    `~/.local/bin/jot` and the plist.
+  - Anything that would touch files outside `~/.nudgy` (which includes `~/.nudgy/Nudgy Notifier.app`),
+    `~/.local/bin/nudgy` and the plist.
 - **Never:**
   - Make network calls.
   - Edit `~/.zshrc` or any dotfile.
-  - Delete or recreate `jot.db` to "fix" a migration.
+  - Delete or recreate `nudgy.db` to "fix" a migration.
   - Add Homebrew dependencies, or native code other than the Swift notifier helper.
   - Spawn a process from the prompt segment.
   - Show a real notification from a test.
 
 ## Success Criteria
 
-1. `jot "x"` completes in **< 100ms** wall time (compiled binary, warm, median of 10), inside a git repo.
+1. `nudgy "x"` completes in **< 100ms** wall time (compiled binary, warm, median of 10), inside a git repo.
 2. A one-shot reminder set `-r "in 2 minutes"` produces a banner within 30 seconds of its time,
    with the daemon running under launchd.
 3. An unacknowledged reminder re-alerts every `realertMinutes` until done or snoozed.
 4. After sleeping through multiple due reminders, wake produces exactly one summary banner.
 5. `every weekday 9am` fires at 09:00 local on weekdays only, including across a DST change (unit-tested).
 6. Marking a recurring reminder done schedules the next occurrence strictly after now.
-7. `jot ls --here` returns only items whose repo matches the current repo root.
-8. `jot search` finds items by word prefix and reflects edits and deletes.
+7. `nudgy ls --here` returns only items whose repo matches the current repo root.
+8. `nudgy search` finds items by word prefix and reflects edits and deletes.
 9. A new zsh shell shows overdue/upcoming items when there are any and prints nothing when there are none.
    The prompt segment spawns no process.
-10. `jot` opens the TUI. Every key listed above works. `e` returns to an intact TUI after `$EDITOR` exits.
+10. `nudgy` opens the TUI. Every key listed above works. `e` returns to an intact TUI after `$EDITOR` exits.
 11. `bun run install:local` over a running daemon leaves a binary that launches (no SIGKILL) and a restarted daemon.
 12. `bun test`, `bun run typecheck` and `bun run check` all pass. `src/core/` coverage is ≥ 90%.
 

@@ -1,6 +1,6 @@
 import { $ } from "bun";
 
-const outfile = "dist/jot";
+const outfile = "dist/nudgy";
 
 const result = await Bun.build({
   entrypoints: ["src/main.ts"],
@@ -17,7 +17,7 @@ if (!result.success) {
 // An unsigned or stale-signed binary is SIGKILLed on launch on Apple Silicon
 await $`codesign -s - -f ${outfile}`;
 
-const app = "dist/Jot Notifier.app";
+const app = "dist/Nudgy Notifier.app";
 const sources = [
   "src/notifier/main.swift",
   "src/notifier/Info.plist",
@@ -30,7 +30,7 @@ const hash = hasher.digest("hex");
 const cached =
   (await Bun.file(stamp).exists()) && (await Bun.file(stamp).text()) === hash;
 
-if (cached && (await Bun.file(`${app}/Contents/MacOS/jot-notify`).exists())) {
+if (cached && (await Bun.file(`${app}/Contents/MacOS/nudgy-notify`).exists())) {
   console.log("notifier unchanged, skipping swiftc");
 } else {
   await $`rm -rf ${app} dist/Assets.xcassets && mkdir -p ${app}/Contents/MacOS ${app}/Contents/Resources`;
@@ -38,7 +38,7 @@ if (cached && (await Bun.file(`${app}/Contents/MacOS/jot-notify`).exists())) {
   // actool emits both Assets.car (CFBundleIconName) and AppIcon.icns (CFBundleIconFile), as Xcode would
   await $`xcrun swift scripts/icon.swift dist/Assets.xcassets`;
   await $`xcrun actool --compile ${app}/Contents/Resources --platform macosx --minimum-deployment-target 14.0 --app-icon AppIcon --output-partial-info-plist dist/icon-partial.plist dist/Assets.xcassets`.quiet();
-  await $`xcrun swiftc -O -o ${app}/Contents/MacOS/jot-notify src/notifier/main.swift`;
+  await $`xcrun swiftc -O -o ${app}/Contents/MacOS/nudgy-notify src/notifier/main.swift`;
   await $`codesign -s - -f ${app}`;
   await Bun.write(stamp, hash);
 }

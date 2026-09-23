@@ -9,9 +9,11 @@ export function fixedClock(ms: number): Clock {
 }
 
 export function clockFromEnv(env: Env): Clock {
-  if (env.JOT_NOW === undefined) return systemClock;
-  const ms = Number(env.JOT_NOW);
+  if (env.NUDGY_NOW === undefined) return systemClock;
+  const ms = Number(env.NUDGY_NOW);
   if (!Number.isInteger(ms))
-    throw new Error(`JOT_NOW must be epoch milliseconds, got "${env.JOT_NOW}"`);
+    throw new Error(
+      `NUDGY_NOW must be epoch milliseconds, got "${env.NUDGY_NOW}"`,
+    );
   return fixedClock(ms);
 }

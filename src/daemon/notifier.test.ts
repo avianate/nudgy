@@ -50,7 +50,10 @@ test("the script reads every field from argv", () => {
 });
 
 test("the file notifier appends one JSON line per notification", async () => {
-  const path = join(mkdtempSync(join(tmpdir(), "jot-notify-")), "notes.jsonl");
+  const path = join(
+    mkdtempSync(join(tmpdir(), "nudgy-notify-")),
+    "notes.jsonl",
+  );
   const notifier = fileNotifier(path);
   await notifier.notify({
     title: "a",
@@ -76,32 +79,32 @@ test("the file notifier appends one JSON line per notification", async () => {
   ]);
 });
 
-test("JOT_NOTIFIER=file:<path> selects the file notifier; otherwise osascript", () => {
+test("NUDGY_NOTIFIER=file:<path> selects the file notifier; otherwise osascript", () => {
   const paths = resolvePaths({ HOME: tempHome() });
-  expect(notifierFromEnv({ JOT_NOTIFIER: "file:/tmp/x" }, paths).kind).toBe(
+  expect(notifierFromEnv({ NUDGY_NOTIFIER: "file:/tmp/x" }, paths).kind).toBe(
     "file",
   );
   expect(notifierFromEnv({}, paths).kind).toBe("osascript");
 });
 
-test("an unknown JOT_NOTIFIER is rejected rather than silently showing real banners", () => {
+test("an unknown NUDGY_NOTIFIER is rejected rather than silently showing real banners", () => {
   expect(() =>
-    notifierFromEnv({ JOT_NOTIFIER: "fake" }, resolvePaths({})),
-  ).toThrow(/JOT_NOTIFIER/);
+    notifierFromEnv({ NUDGY_NOTIFIER: "fake" }, resolvePaths({})),
+  ).toThrow(/NUDGY_NOTIFIER/);
 });
 
 function tempHome() {
-  return mkdtempSync(join(tmpdir(), "jot-notifier-"));
+  return mkdtempSync(join(tmpdir(), "nudgy-notifier-"));
 }
 
 function fakeHelper(home: string, exitCode = 0) {
   const exe = join(
     home,
-    ".jot",
-    "Jot Notifier.app",
+    ".nudgy",
+    "Nudgy Notifier.app",
     "Contents",
     "MacOS",
-    "jot-notify",
+    "nudgy-notify",
   );
   mkdirSync(join(exe, ".."), { recursive: true });
   const log = join(home, "argv.json");
@@ -118,15 +121,15 @@ const note: Notification = {
   subtitle: "back\\slash",
   body: "one\ntwo",
   sound: "Glass",
-  id: "jot-item-7",
+  id: "nudgy-item-7",
 };
 
 test("the helper gets one JSON payload with the text, and for an item, how to act on it", async () => {
   const home = tempHome();
   const { exe, log } = fakeHelper(home);
   await helperNotifier(exe, {
-    jotBin: "/u/.local/bin/jot",
-    jotHome: "/u/.jot",
+    nudgyBin: "/u/.local/bin/nudgy",
+    nudgyHome: "/u/.nudgy",
   }).notify({
     ...note,
     itemId: 7,
@@ -139,19 +142,19 @@ test("the helper gets one JSON payload with the text, and for an item, how to ac
     subtitle: note.subtitle,
     body: note.body,
     sound: "Glass",
-    id: "jot-item-7",
+    id: "nudgy-item-7",
     item: {
       id: 7,
       snooze: "10m",
-      jotBin: "/u/.local/bin/jot",
-      jotHome: "/u/.jot",
+      nudgyBin: "/u/.local/bin/nudgy",
+      nudgyHome: "/u/.nudgy",
     },
   });
 });
 
 test("a notification without an item carries no actions", async () => {
   const { exe, log } = fakeHelper(tempHome());
-  await helperNotifier(exe, { jotBin: "/b", jotHome: "/h" }).notify(note);
+  await helperNotifier(exe, { nudgyBin: "/b", nudgyHome: "/h" }).notify(note);
   expect(
     JSON.parse(readFileSync(log, "utf8").split("\0")[1] as string).item,
   ).toBeUndefined();
@@ -160,8 +163,8 @@ test("a notification without an item carries no actions", async () => {
 test("a helper that is not authorized fails with the settings to fix", async () => {
   const { exe } = fakeHelper(tempHome(), 3);
   await expect(
-    helperNotifier(exe, { jotBin: "/b", jotHome: "/h" }).notify(note),
-  ).rejects.toThrow(/Notifications → Jot/);
+    helperNotifier(exe, { nudgyBin: "/b", nudgyHome: "/h" }).notify(note),
+  ).rejects.toThrow(/Notifications → Nudgy/);
 });
 
 test("the fallback notifier is used, and the failure logged, when the primary fails", async () => {
@@ -192,11 +195,13 @@ test("the installed helper is preferred, with osascript behind it", () => {
   );
 });
 
-test("JOT_NOTIFIER=osascript forces the fallback", () => {
+test("NUDGY_NOTIFIER=osascript forces the fallback", () => {
   const home = tempHome();
   fakeHelper(home);
   expect(
-    notifierFromEnv({ JOT_NOTIFIER: "osascript" }, resolvePaths({ HOME: home }))
-      .kind,
+    notifierFromEnv(
+      { NUDGY_NOTIFIER: "osascript" },
+      resolvePaths({ HOME: home }),
+    ).kind,
   ).toBe("osascript");
 });

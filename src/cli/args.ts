@@ -86,7 +86,7 @@ function parseCommand(command: Reserved, args: string[]): Parsed {
     return { command, positionals, flags: values };
   } catch (e) {
     const hint =
-      command === "add" ? ' (to capture it literally: jot -- "<text>")' : "";
+      command === "add" ? ' (to capture it literally: nudgy -- "<text>")' : "";
     throw new UsageError(`${(e as Error).message}${hint}`);
   }
 }

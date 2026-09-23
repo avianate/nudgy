@@ -36,14 +36,14 @@ describe("dispatch", () => {
     },
   );
 
-  test("jot add <reserved> captures the literal word", () => {
+  test("nudgy add <reserved> captures the literal word", () => {
     expect(parseArgs(["add", "today"])).toMatchObject({
       command: "add",
       positionals: ["today"],
     });
   });
 
-  test("jot -- <text> captures literally, including things that look like flags", () => {
+  test("nudgy -- <text> captures literally, including things that look like flags", () => {
     expect(parseArgs(["--", "today", "-r", "x"])).toMatchObject({
       command: "add",
       positionals: ["today", "-r", "x"],
@@ -93,7 +93,7 @@ describe("flags", () => {
 
   test("an unknown flag is a usage error that suggests the literal form", () => {
     expect(() => parseArgs(["ls", "--bogus"])).toThrow(UsageError);
-    expect(() => parseArgs(["use", "--force"])).toThrow(/jot --/);
+    expect(() => parseArgs(["use", "--force"])).toThrow(/nudgy --/);
   });
 
   test("-r without a value is a usage error", () => {

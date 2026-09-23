@@ -20,7 +20,7 @@ export function installGuards(
   const fatal = (e: unknown) => {
     target.destroy();
     target.write(
-      `jot: ${e instanceof Error ? (e.stack ?? e.message) : String(e)}\n`,
+      `nudgy: ${e instanceof Error ? (e.stack ?? e.message) : String(e)}\n`,
     );
     target.exit(1);
   };
@@ -66,7 +66,7 @@ export async function runTui(ctx: Context): Promise<number> {
     const onEdit = async (item: { id: number; body: string }) => {
       renderer.suspend();
       try {
-        return editText(item.body, ctx.env, `jot-${item.id}.md`);
+        return editText(item.body, ctx.env, `nudgy-${item.id}.md`);
       } finally {
         renderer.resume();
       }

@@ -10,7 +10,7 @@ function item(overrides: Partial<Item>): Item {
   return {
     id: 1,
     body: "re-run the flaky suite\nmore detail",
-    repo: "/src/jot",
+    repo: "/src/nudgy",
     branch: "main",
     createdAt: 0,
     updatedAt: 0,
@@ -90,9 +90,9 @@ describe("notificationFor", () => {
       notificationFor({ kind: "single", items: [item({ id: 7 })] }),
     ).toEqual({
       title: "re-run the flaky suite",
-      subtitle: "jot@main",
+      subtitle: "nudgy@main",
       body: "more detail",
-      id: "jot-item-7",
+      id: "nudgy-item-7",
       itemId: 7,
     });
   });
@@ -117,17 +117,17 @@ describe("notificationFor", () => {
     expect(body.startsWith("word word")).toBe(true);
   });
 
-  test("a summary banner points at jot due", () => {
+  test("a summary banner points at nudgy due", () => {
     expect(
       notificationFor({
         kind: "summary",
         items: [item({}), item({}), item({})],
       }),
     ).toEqual({
-      title: "jot",
+      title: "nudgy",
       subtitle: "",
-      body: "3 reminders due — jot due",
-      id: "jot-summary",
+      body: "3 reminders due — nudgy due",
+      id: "nudgy-summary",
     });
     expect(
       "itemId" in

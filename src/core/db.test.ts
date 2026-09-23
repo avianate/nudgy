@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { openDb, SCHEMA_VERSION } from "./db";
 
 function tempDbPath() {
-  return join(mkdtempSync(join(tmpdir(), "jot-db-")), "nested", "jot.db");
+  return join(mkdtempSync(join(tmpdir(), "nudgy-db-")), "nested", "nudgy.db");
 }
 
 test("opening a fresh database runs migrations to the current version", () => {

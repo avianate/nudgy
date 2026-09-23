@@ -31,7 +31,7 @@ test("/ filters the list as you type and enter keeps the filter", async () => {
   expect(selectedLine(a.frame())).toContain("plain note");
 });
 
-test("search matches the same way jot search does", async () => {
+test("search matches the same way nudgy search does", async () => {
   const a = await app();
   await a.tab();
   await a.tab();
@@ -59,11 +59,11 @@ test("h toggles the current-repo filter and shows that it is on", async () => {
   await a.tab();
   await a.tab();
   await a.press("h");
-  expect(a.frame()).toContain("here: jot");
+  expect(a.frame()).toContain("here: nudgy");
   expect(a.frame()).toContain("plain note");
   expect(a.frame()).not.toContain("soon thing");
   await a.press("h");
-  expect(a.frame()).not.toContain("here: jot");
+  expect(a.frame()).not.toContain("here: nudgy");
   expect(a.frame()).toContain("soon thing");
 });
 

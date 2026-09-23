@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import pkg from "../../package.json";
 
-test("jot --version prints the package version", async () => {
+test("nudgy --version prints the package version", async () => {
   const proc = Bun.spawn(["bun", "src/main.ts", "--version"], {
     stdout: "pipe",
   });

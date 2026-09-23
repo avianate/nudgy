@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleIdentifier</key>
-  <string>dev.jot.app</string>
+  <string>io.github.avianate.nudgy</string>
   <key>CFBundleName</key>
-  <string>Jot</string>
+  <string>Nudgy</string>
   <key>CFBundleDisplayName</key>
-  <string>Jot</string>
+  <string>Nudgy</string>
   <key>CFBundleExecutable</key>
-  <string>jot-notify</string>
+  <string>nudgy-notify</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>

@@ -18,8 +18,8 @@ const NOW = Date.parse("2026-09-22T14:00:00Z");
 const MIN = 60_000;
 
 function setup(options: { failNotify?: boolean } = {}) {
-  const home = mkdtempSync(join(tmpdir(), "jot-loop-"));
-  const paths = resolvePaths({ JOT_HOME: home });
+  const home = mkdtempSync(join(tmpdir(), "nudgy-loop-"));
+  const paths = resolvePaths({ NUDGY_HOME: home });
   const db = openDb(":memory:");
   const sent: Notification[] = [];
   const logs: string[] = [];
@@ -112,10 +112,10 @@ describe("tick", () => {
     await tick(deps);
     expect(sent).toEqual([
       {
-        title: "jot",
+        title: "nudgy",
         subtitle: "",
-        body: "3 reminders due — jot due",
-        id: "jot-summary",
+        body: "3 reminders due — nudgy due",
+        id: "nudgy-summary",
         sound: "Glass",
         snooze: "10m",
       },

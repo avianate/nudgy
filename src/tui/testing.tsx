@@ -15,7 +15,7 @@ export function seededDb() {
     db,
     {
       body: "overdue thing\n\nsome **detail** here",
-      repo: "/src/jot",
+      repo: "/src/nudgy",
       branch: "main",
       remindAt: NOW - H,
     },
@@ -33,7 +33,7 @@ export function seededDb() {
   );
   createItem(
     db,
-    { body: "plain note", repo: "/src/jot", branch: "main" },
+    { body: "plain note", repo: "/src/nudgy", branch: "main" },
     NOW - 48 * H,
   );
   createItem(
@@ -53,12 +53,12 @@ export async function renderApp(
   const store = createStore(
     db,
     { now: () => NOW },
-    { origin: { repo: "/src/jot", branch: "main" } },
+    { origin: { repo: "/src/nudgy", branch: "main" } },
   );
   const t = await testRender(
     <App
       store={store}
-      repo="/src/jot"
+      repo="/src/nudgy"
       refreshMs={60_000}
       onQuit={() => (quit = true)}
       {...overrides}

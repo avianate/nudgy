@@ -57,14 +57,14 @@ export function notificationFor(plan: AlertPlan): Banner {
       title: title(first.body),
       subtitle: repoLabel(first),
       body: alertBody(first),
-      id: `jot-item-${first.id}`,
+      id: `nudgy-item-${first.id}`,
       itemId: first.id,
     };
   }
   return {
-    title: "jot",
+    title: "nudgy",
     subtitle: "",
-    body: `${plan.items.length} reminders due — jot due`,
-    id: "jot-summary",
+    body: `${plan.items.length} reminders due — nudgy due`,
+    id: "nudgy-summary",
   };
 }

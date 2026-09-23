@@ -14,47 +14,47 @@ import {
 describe("plistXml", () => {
   const paths = resolvePaths({
     HOME: "/Users/dev",
-    JOT_HOME: "/Users/dev/.jot",
+    NUDGY_HOME: "/Users/dev/.nudgy",
   });
   const xml = plistXml(paths);
 
   test("runs the canonical install path, never the binary that ran the install", () => {
     expect(xml).toContain(
-      "<string>/Users/dev/.local/bin/jot</string>\n    <string>daemon</string>\n    <string>run</string>",
+      "<string>/Users/dev/.local/bin/nudgy</string>\n    <string>daemon</string>\n    <string>run</string>",
     );
     expect(xml).not.toContain(process.execPath);
   });
 
-  test("uses the dev.jot.daemon label with KeepAlive and RunAtLoad", () => {
-    expect(LABEL).toBe("dev.jot.daemon");
+  test("uses the io.github.avianate.nudgy.daemon label with KeepAlive and RunAtLoad", () => {
+    expect(LABEL).toBe("io.github.avianate.nudgy.daemon");
     expect(xml).toContain(
-      "<key>Label</key>\n  <string>dev.jot.daemon</string>",
+      "<key>Label</key>\n  <string>io.github.avianate.nudgy.daemon</string>",
     );
     expect(xml).toContain("<key>KeepAlive</key>\n  <true/>");
     expect(xml).toContain("<key>RunAtLoad</key>\n  <true/>");
   });
 
-  test("logs to daemon.log and passes JOT_HOME through", () => {
+  test("logs to daemon.log and passes NUDGY_HOME through", () => {
     expect(xml).toContain(
-      "<key>StandardOutPath</key>\n  <string>/Users/dev/.jot/daemon.log</string>",
+      "<key>StandardOutPath</key>\n  <string>/Users/dev/.nudgy/daemon.log</string>",
     );
     expect(xml).toContain(
-      "<key>StandardErrorPath</key>\n  <string>/Users/dev/.jot/daemon.log</string>",
+      "<key>StandardErrorPath</key>\n  <string>/Users/dev/.nudgy/daemon.log</string>",
     );
     expect(xml).toContain(
-      "<key>JOT_HOME</key>\n    <string>/Users/dev/.jot</string>",
+      "<key>NUDGY_HOME</key>\n    <string>/Users/dev/.nudgy</string>",
     );
   });
 
   test("escapes XML in paths", () => {
     expect(
-      plistXml(resolvePaths({ HOME: "/Users/a&b", JOT_HOME: "/tmp/<j>" })),
+      plistXml(resolvePaths({ HOME: "/Users/a&b", NUDGY_HOME: "/tmp/<j>" })),
     ).toContain("/tmp/&lt;j&gt;/daemon.log");
   });
 
   test("the plist lives in ~/Library/LaunchAgents", () => {
     expect(paths.launchAgent).toBe(
-      "/Users/dev/Library/LaunchAgents/dev.jot.daemon.plist",
+      "/Users/dev/Library/LaunchAgents/io.github.avianate.nudgy.daemon.plist",
     );
   });
 });
@@ -63,7 +63,7 @@ describe("parsePrint", () => {
   test("reads the pid of a running job", () => {
     expect(
       parsePrint(
-        "gui/501/dev.jot.daemon = {\n\tstate = running\n\tpid = 1630\n\t\tstate = active\n",
+        "gui/501/io.github.avianate.nudgy.daemon = {\n\tstate = running\n\tpid = 1630\n\t\tstate = active\n",
       ),
     ).toEqual({
       loaded: true,
@@ -81,7 +81,10 @@ describe("parsePrint", () => {
 
 describe("fileLaunchctl", () => {
   test("records calls and tracks loaded state across instances", async () => {
-    const file = join(mkdtempSync(join(tmpdir(), "jot-lc-")), "launchctl.json");
+    const file = join(
+      mkdtempSync(join(tmpdir(), "nudgy-lc-")),
+      "launchctl.json",
+    );
     await fileLaunchctl(file).bootstrap("/p.plist");
     expect(await fileLaunchctl(file).print()).toEqual({
       loaded: true,
@@ -99,9 +102,11 @@ describe("fileLaunchctl", () => {
   });
 });
 
-test("an unknown JOT_LAUNCHCTL is rejected rather than touching the real launchd", () => {
-  expect(() => launchctlFromEnv({ JOT_LAUNCHCTL: "fake" })).toThrow(
-    /JOT_LAUNCHCTL/,
+test("an unknown NUDGY_LAUNCHCTL is rejected rather than touching the real launchd", () => {
+  expect(() => launchctlFromEnv({ NUDGY_LAUNCHCTL: "fake" })).toThrow(
+    /NUDGY_LAUNCHCTL/,
   );
-  expect(launchctlFromEnv({ JOT_LAUNCHCTL: "file:/tmp/x" }).kind).toBe("file");
+  expect(launchctlFromEnv({ NUDGY_LAUNCHCTL: "file:/tmp/x" }).kind).toBe(
+    "file",
+  );
 });

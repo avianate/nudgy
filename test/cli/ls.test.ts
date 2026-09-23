@@ -2,17 +2,17 @@ import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { openDb } from "../../src/core/db";
 import { createItem } from "../../src/core/items";
-import { jotHome, makeRepo, tempDir } from "./helpers";
+import { makeRepo, nudgyHome, tempDir } from "./helpers";
 
 const NOW = Date.parse("2026-09-22T18:00:00Z");
 const HOUR = 3_600_000;
-const env = { JOT_NOW: String(NOW) };
+const env = { NUDGY_NOW: String(NOW) };
 
 function seed() {
-  const ctx = jotHome();
+  const ctx = nudgyHome();
   const repoA = makeRepo("main");
   const repoB = makeRepo("dev");
-  const db = openDb(join(ctx.home, "jot.db"));
+  const db = openDb(join(ctx.home, "nudgy.db"));
   createItem(
     db,
     { body: "note in A\nwith details", repo: repoA, branch: "main" },
@@ -48,8 +48,8 @@ function ids(stdout: string) {
 }
 
 test("ls lists open items newest first, hiding done ones", () => {
-  const { jot } = seed();
-  const result = jot(["ls"], { env });
+  const { nudgy } = seed();
+  const result = nudgy(["ls"], { env });
   expect(result.code).toBe(0);
   const lines = result.stdout.trimEnd().split("\n");
   expect(lines).toHaveLength(3);
@@ -61,38 +61,38 @@ test("ls lists open items newest first, hiding done ones", () => {
 });
 
 test("ls --done lists only completed items", () => {
-  const { jot } = seed();
-  expect(ids(jot(["ls", "--done", "--json"], { env }).stdout)).toEqual([4]);
+  const { nudgy } = seed();
+  expect(ids(nudgy(["ls", "--done", "--json"], { env }).stdout)).toEqual([4]);
 });
 
 test("ls --reminders lists only items with a reminder", () => {
-  const { jot } = seed();
-  expect(ids(jot(["ls", "--reminders", "--json"], { env }).stdout)).toEqual([
+  const { nudgy } = seed();
+  expect(ids(nudgy(["ls", "--reminders", "--json"], { env }).stdout)).toEqual([
     3,
   ]);
 });
 
 test("ls --here lists only items from the current repo", () => {
-  const { jot, repoA, repoB } = seed();
+  const { nudgy, repoA, repoB } = seed();
   expect(
-    ids(jot(["ls", "--here", "--json"], { env, cwd: join(repoA) }).stdout),
+    ids(nudgy(["ls", "--here", "--json"], { env, cwd: join(repoA) }).stdout),
   ).toEqual([3, 1]);
   expect(
-    ids(jot(["ls", "--here", "--json"], { env, cwd: repoB }).stdout),
+    ids(nudgy(["ls", "--here", "--json"], { env, cwd: repoB }).stdout),
   ).toEqual([2]);
 });
 
 test("ls --here outside a repo is an error", () => {
-  const { jot } = seed();
-  const result = jot(["ls", "--here"], { env, cwd: tempDir() });
+  const { nudgy } = seed();
+  const result = nudgy(["ls", "--here"], { env, cwd: tempDir() });
   expect(result.code).toBe(1);
   expect(result.stderr).toContain("not inside a git repo");
 });
 
 test("ls --json has a stable shape", () => {
-  const { jot, repoA } = seed();
+  const { nudgy, repoA } = seed();
   const items = JSON.parse(
-    jot(["ls", "--reminders", "--json"], { env }).stdout,
+    nudgy(["ls", "--reminders", "--json"], { env }).stdout,
   );
   expect(items).toEqual([
     {
@@ -113,16 +113,16 @@ test("ls --json has a stable shape", () => {
 });
 
 test("ls with nothing to show says so", () => {
-  const { jot } = jotHome();
-  const result = jot(["ls"]);
+  const { nudgy } = nudgyHome();
+  const result = nudgy(["ls"]);
   expect(result.code).toBe(0);
   expect(result.stdout).toBe("no items\n");
-  expect(jot(["ls", "--json"]).stdout).toBe("[]\n");
+  expect(nudgy(["ls", "--json"]).stdout).toBe("[]\n");
 });
 
 test("show prints absolute times and the full body", () => {
-  const { jot, repoA } = seed();
-  const result = jot(["show", "1"], { env });
+  const { nudgy, repoA } = seed();
+  const result = nudgy(["show", "1"], { env });
   expect(result.code).toBe(0);
   expect(result.stdout).toContain("#1  note in A");
   expect(result.stdout).toContain(repoA);
@@ -131,28 +131,28 @@ test("show prints absolute times and the full body", () => {
 });
 
 test("show includes the reminder in absolute and relative form", () => {
-  const { jot } = seed();
-  expect(jot(["show", "3"], { env }).stdout).toContain(
+  const { nudgy } = seed();
+  expect(nudgy(["show", "3"], { env }).stdout).toContain(
     "Tue 2026-09-22 16:00 (in 2h)",
   );
 });
 
 test("show --json prints one item", () => {
-  const { jot } = seed();
+  const { nudgy } = seed();
   expect(
-    JSON.parse(jot(["show", "2", "--json"], { env }).stdout),
+    JSON.parse(nudgy(["show", "2", "--json"], { env }).stdout),
   ).toMatchObject({ id: 2, title: "note in B" });
 });
 
 test("show on a missing id exits 1", () => {
-  const { jot } = seed();
-  const result = jot(["show", "99"], { env });
+  const { nudgy } = seed();
+  const result = nudgy(["show", "99"], { env });
   expect(result.code).toBe(1);
   expect(result.stderr).toContain("no item #99");
 });
 
 test("show without a numeric id is a usage error", () => {
-  const { jot } = seed();
-  expect(jot(["show"], { env }).code).toBe(2);
-  expect(jot(["show", "abc"], { env }).code).toBe(2);
+  const { nudgy } = seed();
+  expect(nudgy(["show"], { env }).code).toBe(2);
+  expect(nudgy(["show", "abc"], { env }).code).toBe(2);
 });

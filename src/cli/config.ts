@@ -3,7 +3,7 @@ import { DEFAULT_CONFIG, loadConfig } from "../core/config";
 import type { Parsed } from "./args";
 import type { Context } from "./context";
 import { runEditor } from "./editor";
-import { JotError } from "./errors";
+import { NudgyError } from "./errors";
 
 export function run(_: Parsed, ctx: Context): number {
   const { config } = ctx.paths;
@@ -12,7 +12,7 @@ export function run(_: Parsed, ctx: Context): number {
     writeFileSync(config, `${JSON.stringify(DEFAULT_CONFIG, null, 2)}\n`);
   }
   if (!runEditor(config, ctx.env))
-    throw new JotError("editor exited with an error");
+    throw new NudgyError("editor exited with an error");
   loadConfig(config);
   ctx.out(`config ok: ${config}`);
   return 0;

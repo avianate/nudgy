@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { gitContext, parseRevParse } from "./git";
 
 function tempDir() {
-  return realpathSync(mkdtempSync(join(tmpdir(), "jot-git-")));
+  return realpathSync(mkdtempSync(join(tmpdir(), "nudgy-git-")));
 }
 
 function git(cwd: string, ...args: string[]) {
@@ -33,8 +33,8 @@ test("a repo with no commits yet still records the repo", () => {
 });
 
 test("a detached HEAD records no branch", () => {
-  expect(parseRevParse("/src/jot\nHEAD\n")).toEqual({
-    repo: "/src/jot",
+  expect(parseRevParse("/src/nudgy\nHEAD\n")).toEqual({
+    repo: "/src/nudgy",
     branch: null,
   });
 });

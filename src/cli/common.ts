@@ -1,6 +1,6 @@
 import { getItem, type Item } from "../core/items";
 import type { Context } from "./context";
-import { JotError, UsageError } from "./errors";
+import { NudgyError, UsageError } from "./errors";
 import { listLine, toJson } from "./format";
 
 export function parseId(raw: string | undefined): number {
@@ -13,13 +13,13 @@ export function parseId(raw: string | undefined): number {
 export function requireItem(ctx: Context, raw: string | undefined): Item {
   const id = parseId(raw);
   const item = getItem(ctx.db(), id);
-  if (!item) throw new JotError(`no item #${id}`);
+  if (!item) throw new NudgyError(`no item #${id}`);
   return item;
 }
 
 export function currentRepo(ctx: Context): string {
   const { repo } = ctx.git(ctx.cwd);
-  if (!repo) throw new JotError("--here: not inside a git repo");
+  if (!repo) throw new NudgyError("--here: not inside a git repo");
   return repo;
 }
 

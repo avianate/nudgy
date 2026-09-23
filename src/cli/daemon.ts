@@ -16,7 +16,7 @@ import { runLoop, type TickDeps, tick } from "../daemon/loop";
 import { notifierFromEnv } from "../daemon/notifier";
 import type { Parsed } from "./args";
 import type { Context } from "./context";
-import { JotError, UsageError } from "./errors";
+import { NudgyError, UsageError } from "./errors";
 import { absolute, relative } from "./format";
 
 export async function run(parsed: Parsed, ctx: Context): Promise<number> {
@@ -25,7 +25,7 @@ export async function run(parsed: Parsed, ctx: Context): Promise<number> {
   if (sub === "install") return install(ctx);
   if (sub === "uninstall") return uninstall(ctx);
   if (sub === "status") return status(ctx);
-  throw new UsageError("jot daemon run | install | uninstall | status");
+  throw new UsageError("nudgy daemon run | install | uninstall | status");
 }
 
 async function runDaemon({ flags }: Parsed, ctx: Context): Promise<number> {
@@ -56,7 +56,7 @@ async function runDaemon({ flags }: Parsed, ctx: Context): Promise<number> {
 async function install(ctx: Context): Promise<number> {
   const { paths } = ctx;
   if (!existsSync(paths.bin)) {
-    throw new JotError(
+    throw new NudgyError(
       `${paths.bin} not found; run \`bun run install:local\` first`,
     );
   }
@@ -64,7 +64,7 @@ async function install(ctx: Context): Promise<number> {
   if ((await launchctl.print()).loaded) {
     await launchctl.bootout();
     if (!(await waitUntilUnloaded(launchctl)))
-      throw new JotError(`${LABEL} did not unload; try again`);
+      throw new NudgyError(`${LABEL} did not unload; try again`);
   }
   mkdirSync(dirname(paths.launchAgent), { recursive: true });
   mkdirSync(paths.home, { recursive: true });

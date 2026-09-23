@@ -1,7 +1,7 @@
 import pkg from "../package.json";
 import { type Parsed, parseArgs, type Reserved } from "./cli/args";
 import type { Context } from "./cli/context";
-import { JotError, UsageError } from "./cli/errors";
+import { NudgyError, UsageError } from "./cli/errors";
 import { ConfigError, InputError } from "./core/errors";
 
 type Command = { run(parsed: Parsed, ctx: Context): number | Promise<number> };
@@ -37,7 +37,7 @@ async function main(argv: string[]): Promise<number> {
     if (parsed.command === "tui") {
       if (!process.stdin.isTTY || !process.stdout.isTTY) {
         throw new UsageError(
-          'the TUI needs a terminal; to capture, use jot "<text>" (see jot --help)',
+          'the TUI needs a terminal; to capture, use nudgy "<text>" (see nudgy --help)',
         );
       }
       const { createContext } = await import("./cli/context");
@@ -51,17 +51,17 @@ async function main(argv: string[]): Promise<number> {
     }
     const load = COMMANDS[parsed.command];
     if (!load)
-      throw new UsageError(`jot ${parsed.command}: not implemented yet`);
+      throw new UsageError(`nudgy ${parsed.command}: not implemented yet`);
     const { createContext } = await import("./cli/context");
     const command = await load();
     return await command.run(parsed, createContext(process.env, process.cwd()));
   } catch (e) {
     if (e instanceof UsageError || e instanceof InputError) {
-      console.error(`jot: ${e.message}`);
+      console.error(`nudgy: ${e.message}`);
       return 2;
     }
-    if (e instanceof JotError || e instanceof ConfigError) {
-      console.error(`jot: ${e.message}`);
+    if (e instanceof NudgyError || e instanceof ConfigError) {
+      console.error(`nudgy: ${e.message}`);
       return 1;
     }
     throw e;

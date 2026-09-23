@@ -1,13 +1,13 @@
-// jot-notify --json '<payload>'   post one alert; a payload with "item" gets Done / Snooze / Remind later actions
-// jot-notify --list               print delivered notifications (identifier<TAB>title)
-// jot-notify                      how macOS relaunches us when an action is clicked: run jot, then exit
+// nudgy-notify --json '<payload>'   post one alert; a payload with "item" gets Done / Snooze / Remind later actions
+// nudgy-notify --list               print delivered notifications (identifier<TAB>title)
+// nudgy-notify                      how macOS relaunches us when an action is clicked: run nudgy, then exit
 import AppKit
 import Foundation
 import UserNotifications
 
 let center = UNUserNotificationCenter.current()
 let args = CommandLine.arguments
-let reminderCategory = "jot-reminder"
+let reminderCategory = "nudgy-reminder"
 
 func warn(_ message: String) {
   FileHandle.standardError.write(Data((message + "\n").utf8))
@@ -39,7 +39,7 @@ func post(title: String, subtitle: String, body: String, sound: String, id: Stri
   var status: Int32 = -1
   center.requestAuthorization(options: [.alert, .sound]) { granted, error in
     guard granted else {
-      warn("not authorized: \(error?.localizedDescription ?? "notifications are off for Jot")")
+      warn("not authorized: \(error?.localizedDescription ?? "notifications are off for Nudgy")")
       status = 3
       return
     }
@@ -66,12 +66,12 @@ func post(title: String, subtitle: String, body: String, sound: String, id: Stri
 }
 
 // Returns stderr on failure, nil on success
-func runJot(_ bin: String, home: String, _ arguments: [String]) -> String? {
+func runNudgy(_ bin: String, home: String, _ arguments: [String]) -> String? {
   let process = Process()
   process.executableURL = URL(fileURLWithPath: bin)
   process.arguments = arguments
   var env = ProcessInfo.processInfo.environment
-  env["JOT_HOME"] = home
+  env["NUDGY_HOME"] = home
   process.environment = env
   let errors = Pipe()
   process.standardError = errors
@@ -109,9 +109,9 @@ final class Responder: NSObject, UNUserNotificationCenterDelegate {
   private func handle(_ response: UNNotificationResponse) {
     guard let item = response.notification.request.content.userInfo["item"] as? [String: Any],
       let id = (item["id"] as? NSNumber)?.intValue,
-      let bin = item["jotBin"] as? String, let home = item["jotHome"] as? String
+      let bin = item["nudgyBin"] as? String, let home = item["nudgyHome"] as? String
     else {
-      log(NSHomeDirectory() + "/.jot", "action \(response.actionIdentifier) with no item in userInfo")
+      log(NSHomeDirectory() + "/.nudgy", "action \(response.actionIdentifier) with no item in userInfo")
       return
     }
     let typed = (response as? UNTextInputNotificationResponse)?.userText
@@ -127,12 +127,12 @@ final class Responder: NSObject, UNUserNotificationCenterDelegate {
       command = ["remind", String(id), text]
     default: return
     }
-    let failure = runJot(bin, home: home, command)
-    log(home, "jot \(command.joined(separator: " ")) → \(failure.map { "failed: \($0)" } ?? "ok")")
+    let failure = runNudgy(bin, home: home, command)
+    log(home, "nudgy \(command.joined(separator: " ")) → \(failure.map { "failed: \($0)" } ?? "ok")")
     if let failure {
       _ = post(
-        title: "jot: couldn't update #\(id)", subtitle: "", body: failure.replacingOccurrences(of: "jot: ", with: ""),
-        sound: "", id: "jot-error-\(id)", item: nil)
+        title: "nudgy: couldn't update #\(id)", subtitle: "", body: failure.replacingOccurrences(of: "nudgy: ", with: ""),
+        sound: "", id: "nudgy-error-\(id)", item: nil)
     }
   }
 }

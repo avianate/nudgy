@@ -6,7 +6,10 @@ import { DEFAULT_CONFIG, loadConfig } from "./config";
 import { ConfigError } from "./errors";
 
 function configFile(content?: string) {
-  const path = join(mkdtempSync(join(tmpdir(), "jot-config-")), "config.json");
+  const path = join(
+    mkdtempSync(join(tmpdir(), "nudgy-config-")),
+    "config.json",
+  );
   if (content !== undefined) writeFileSync(path, content);
   return path;
 }

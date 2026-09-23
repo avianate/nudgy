@@ -2,34 +2,36 @@ import { expect, test } from "bun:test";
 import { homedir } from "node:os";
 import { resolvePaths } from "./paths";
 
-test("JOT_HOME overrides the data directory", () => {
-  expect(resolvePaths({ JOT_HOME: "/tmp/jh", HOME: "/Users/dev" })).toEqual({
+test("NUDGY_HOME overrides the data directory", () => {
+  expect(resolvePaths({ NUDGY_HOME: "/tmp/jh", HOME: "/Users/dev" })).toEqual({
     home: "/tmp/jh",
-    db: "/tmp/jh/jot.db",
+    db: "/tmp/jh/nudgy.db",
     config: "/tmp/jh/config.json",
     log: "/tmp/jh/daemon.log",
     status: "/tmp/jh/status",
-    bin: "/Users/dev/.local/bin/jot",
-    launchAgent: "/Users/dev/Library/LaunchAgents/dev.jot.daemon.plist",
-    notifierApp: "/Users/dev/.jot/Jot Notifier.app",
-    notifier: "/Users/dev/.jot/Jot Notifier.app/Contents/MacOS/jot-notify",
+    bin: "/Users/dev/.local/bin/nudgy",
+    launchAgent:
+      "/Users/dev/Library/LaunchAgents/io.github.avianate.nudgy.daemon.plist",
+    notifierApp: "/Users/dev/.nudgy/Nudgy Notifier.app",
+    notifier:
+      "/Users/dev/.nudgy/Nudgy Notifier.app/Contents/MacOS/nudgy-notify",
   });
 });
 
 test("HOME places the data directory, binary and LaunchAgent", () => {
   const paths = resolvePaths({ HOME: "/Users/dev" });
   expect([paths.home, paths.bin]).toEqual([
-    "/Users/dev/.jot",
-    "/Users/dev/.local/bin/jot",
+    "/Users/dev/.nudgy",
+    "/Users/dev/.local/bin/nudgy",
   ]);
 });
 
-test("the data directory defaults to ~/.jot", () => {
-  expect(resolvePaths({}).db).toBe(`${homedir()}/.jot/jot.db`);
+test("the data directory defaults to ~/.nudgy", () => {
+  expect(resolvePaths({}).db).toBe(`${homedir()}/.nudgy/nudgy.db`);
 });
 
-test("a relative JOT_HOME resolves against the working directory", () => {
-  expect(resolvePaths({ JOT_HOME: "./.jot-dev" }).home).toBe(
-    `${process.cwd()}/.jot-dev`,
+test("a relative NUDGY_HOME resolves against the working directory", () => {
+  expect(resolvePaths({ NUDGY_HOME: "./.nudgy-dev" }).home).toBe(
+    `${process.cwd()}/.nudgy-dev`,
   );
 });
