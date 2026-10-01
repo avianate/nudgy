@@ -4,13 +4,21 @@ Notes and reminders from the terminal, for macOS.
 
 Capture a thought without leaving the shell, attach a natural-language reminder, and get a
 macOS banner when it comes due. Each note records the git repo and branch you were in.
-`ndg` is a short alias for `nudgy`.
 
 ```sh
 nudgy "check the migration landed"
 nudgy "re-run the flaky suite" -r "in 2 hours"
 nudgy "standup notes" -r "every weekday 9am"
 nudgy            # open the TUI
+```
+
+Alternatively, you can use `ndg` as a short alias for `nudgy`.
+
+```sh
+ndg "check the migration landed"
+ndg "re-run the flaky suite" -r "in 2 hours"     # use -r for reminders
+ndg "standup notes" -r "every weekday 9am"
+ndg            # open the TUI
 ```
 
 ## Requirements
