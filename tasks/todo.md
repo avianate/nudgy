@@ -13,7 +13,7 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 - [x] T5 Capture: `jot "…"` / `add` / `--`, reserved words, git context, <100ms bench
 - [x] T6 `ls` (`--here --done --reminders --json`) and `show`
 - [x] T7 `edit`, `rm [-y]`, `search` with safe FTS query builder
-- [ ] **Checkpoint 1:** gates green, core coverage ≥ 90%, human uses it in a repo
+- [x] **Checkpoint 1:** gates green, core coverage ≥ 90%, human uses it in a repo. Verified 2026-10-01: core coverage 98.9%, 18 notes captured in a repo
 
 ## Phase 2: One-shot reminders and daemon
 - [x] T8 `when.ts`, `-r` on capture, `remind` / `remind --clear` (one-shot only)
@@ -27,12 +27,12 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 - [x] T13 Recurrence grammar parser plus rejection
 - [x] T14 `nextOccurrence` / `rollForward` (DST, month ends, missed occurrences)
 - [x] T15 Wire recurrence into capture, remind, done, daemon tick, display
-- [ ] **Checkpoint 3:** gates green; human sees a real weekday reminder fire
+- [x] **Checkpoint 3:** gates green; human sees a real weekday reminder fire
 
 ## Phase 4: Shell integration and diagnostics
 - [x] T16 `jot hook zsh`, spawn-free `jot_prompt_segment`
 - [x] T17 `doctor` and `config`
-- [ ] **Checkpoint 4:** human confirms SC9 in a new zsh tab
+- [x] **Checkpoint 4:** human confirms SC9 in a new zsh tab
 
 ## Phase 4b: Native notifier (requested mid-build)
 - [x] N1 SPIKE: Swift notifier helper (see spikes.md)
@@ -53,9 +53,6 @@ See `tasks/plan.md` for acceptance criteria, verification and dependencies.
 
 ## Still open, for the human
 - SC4 true sleep-through: sleep the Mac through several due reminders, then expect one summary on wake. Batching is verified, but only with the display off.
-- SC9: add `eval "$(jot hook zsh)"` to ~/.zshrc yourself, then open a new tab.
-- Checkpoint 3: a real `every weekday 9am` firing on the next weekday.
-- Checkpoint 1: hands-on use of capture, ls --here and search in real repos.
 - [x] Follow-up: stable notification IDs. They dedupe Notification Center per reminder; Persistent alerts on screen still stack, which is macOS behaviour.
 - [x] Follow-up: an app icon for Jot Notifier.app, which needed the new bundle ID `dev.jot.app`.
 - Optional: switch off the stale old "Jot" entry in System Settings → Notifications.
