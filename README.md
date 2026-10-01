@@ -93,7 +93,9 @@ Banners have Done, Snooze and Remind later… actions.
 `j/k` move · `tab` switch tabs (Due, Today, All, Done) · `/` search · `a` add · `e` edit ·
 `r` remind · `s` snooze · `d` done · `x` delete · `h` current-repo filter · `?` help · `q` quit
 
-Drag the divider between the panes to resize them; nudgy remembers the split.
+Drag the divider between the panes to resize them; nudgy remembers the split. The divider lights
+up when you hover it, and terminals that support pointer shapes (Ghostty, kitty) also show a
+resize pointer.
 
 ## Config
 

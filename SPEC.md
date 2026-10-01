@@ -207,8 +207,9 @@ Missing keys fall back to defaults. An invalid file is reported, never overwritt
 - Reflects daemon-side changes on focus or a 30-second refresh.
 - Drag the divider between the panes to resize them. The split is saved as a ratio in
   `~/.nudgy/tui.json` and restored on the next launch. A missing or corrupt file means 50/50.
-  Hovering the divider requests a `col-resize` pointer (OSC 22). As of 2026-10-01 no terminal
-  tried shows it; to revisit.
+  Hovering the divider requests an `ew-resize` pointer (OSC 22). Ghostty's macOS app ignores
+  `col-resize`, so that name is avoided. Terminals without OSC 22 (Warp, Terminal.app) keep their
+  usual pointer, so the divider is also drawn in the accent colour while hovered.
 
 ### Development commands
 

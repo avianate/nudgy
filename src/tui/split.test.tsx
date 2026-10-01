@@ -2,8 +2,10 @@ import { afterEach, expect, test } from "bun:test";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { RGBA } from "@opentui/core";
 import { loadSplit, MIN_PANE, saveSplit, splitColumns } from "./split";
 import { renderApp } from "./testing";
+import { ACCENT } from "./views";
 
 let cleanup: (() => Promise<unknown>) | null = null;
 afterEach(async () => {
@@ -78,14 +80,24 @@ test("a drag whose release was lost settles on the next press", async () => {
 test("hovering the divider shows a resize pointer, and leaving it restores the default", async () => {
   const a = await app();
   await a.mouse((m) => m.moveTo(49, 5));
-  expect(a.pointer()).toBe("col-resize");
+  expect(a.pointer()).toBe("ew-resize");
   await a.mouse((m) => m.moveTo(50, 5));
-  expect(a.pointer()).toBe("col-resize");
+  expect(a.pointer()).toBe("ew-resize");
   await a.mouse((m) => m.moveTo(60, 5));
   expect(a.pointer()).toBe("default");
   await a.mouse((m) => m.moveTo(49, 5));
   await a.mouse((m) => m.moveTo(49, 23));
   expect(a.pointer()).toBe("default");
+});
+
+test("hovering the divider highlights it, for terminals that ignore pointer shapes", async () => {
+  const a = await app();
+  const idle = a.dividerColor();
+  expect(idle).not.toEqual(RGBA.fromHex(ACCENT).toInts());
+  await a.mouse((m) => m.moveTo(49, 5));
+  expect(a.dividerColor()).toEqual(RGBA.fromHex(ACCENT).toInts());
+  await a.mouse((m) => m.moveTo(60, 5));
+  expect(a.dividerColor()).toEqual(idle);
 });
 
 test("the resize pointer holds through a drag and follows the divider", async () => {
@@ -96,10 +108,10 @@ test("the resize pointer holds through a drag and follows the divider", async ()
     await m.emitMouseEvent("drag", 40, 8);
     await m.emitMouseEvent("drag", 29, 23);
   });
-  expect(a.pointer()).toBe("col-resize");
+  expect(a.pointer()).toBe("ew-resize");
   await a.mouse((m) => m.release(29, 5));
   expect(seam(a.frame())).toBe(29);
-  expect(a.pointer()).toBe("col-resize");
+  expect(a.pointer()).toBe("ew-resize");
   await a.mouse((m) => m.moveTo(10, 5));
   expect(a.pointer()).toBe("default");
 });

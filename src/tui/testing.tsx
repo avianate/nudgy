@@ -101,6 +101,11 @@ export async function renderApp(
     drag: (fromX: number, toX: number, y = 5) =>
       step(() => t.mockMouse.drag(fromX, y, toX, y)),
     pointer: () => pointers.at(-1) ?? "default",
+    // Colour of the divider: the left pane's top-right corner
+    dividerColor: () => {
+      const spans = t.captureSpans().lines[0]?.spans ?? [];
+      return spans.find((span) => span.text.includes("┐"))?.fg.toInts();
+    },
     mouse: (fn: (mouse: typeof t.mockMouse) => Promise<void>) =>
       step(() => fn(t.mockMouse)),
     // ESC followed at once by a key is how terminals spell Alt+key; a real press has a gap

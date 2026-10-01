@@ -68,6 +68,7 @@ export function App({
   const [repoOnly, setRepoOnly] = useState(false);
   const [split, setSplit] = useState(initialSplit);
   const [resizing, setResizing] = useState(false);
+  const [hovering, setHovering] = useState(false);
   // Several drag events can arrive between renders, so the handlers read refs, not state
   const drag = useRef<{ start: number; ratio: number } | null>(null);
   const pointer = useRef<MousePointerStyle>("default");
@@ -261,16 +262,19 @@ export function App({
   // The divider is the two border columns where the panes meet, above the one-line footer
   const onSeam = (e: MouseEvent) =>
     (e.x === leftCols - 1 || e.x === leftCols) && e.y < height - 1;
-  // Terminals without pointer-shape support (OSC 22) ignore this and keep their usual pointer
+  // Terminals without pointer-shape support (OSC 22), like Warp and Terminal.app, ignore the shape,
+  // so the divider also lights up while the pointer is on it
   const showPointer = (style: MousePointerStyle) => {
     if (pointer.current === style) return;
     pointer.current = style;
+    setHovering(style !== "default");
     renderer.setMousePointer(style);
     // The shape goes out with the next frame, and a hover alone doesn't draw one
     renderer.requestRender();
   };
   const onSeamHover = (e: MouseEvent) => {
-    if (!drag.current) showPointer(onSeam(e) ? "col-resize" : "default");
+    // ew-resize, not col-resize: Ghostty's macOS app ignores shapes it can't map to an NSCursor, col-resize among them
+    if (!drag.current) showPointer(onSeam(e) ? "ew-resize" : "default");
   };
   const endDrag = () => {
     if (!drag.current) return;
@@ -321,7 +325,7 @@ export function App({
       >
         <box
           border
-          borderColor={resizing ? ACCENT : undefined}
+          borderColor={resizing || hovering ? ACCENT : undefined}
           title=" nudgy "
           width={leftCols}
           flexDirection="column"
@@ -349,7 +353,7 @@ export function App({
         </box>
         <box
           border
-          borderColor={resizing ? ACCENT : undefined}
+          borderColor={resizing || hovering ? ACCENT : undefined}
           title=" detail "
           flexGrow={1}
           flexDirection="column"
