@@ -1,40 +1,35 @@
-// Renders the Nudgy Notifier app icon as an asset catalog for actool: xcrun swift scripts/icon.swift <Assets.xcassets>
+// Renders assets/icon.png into the Nudgy Notifier asset catalog for actool: xcrun swift scripts/icon.swift <Assets.xcassets>
 import AppKit
 
 let catalog = CommandLine.arguments[1]
 let out = "\(catalog)/AppIcon.appiconset"
 try! FileManager.default.createDirectory(atPath: out, withIntermediateDirectories: true)
 
+let source = NSImage(contentsOfFile: "assets/icon.png")!
+let side = CGFloat(source.representations[0].pixelsWide)
+// The artwork's rounded square, in source pixels from the top left, measured from its alpha. Its bottom
+// edge carries a few pixels of 3D rim and shadow, so the square is taken from the top, left and right
+let art = (x: CGFloat(154), y: CGFloat(158), side: CGFloat(944))
+
+// macOS only shows an icon full size when its outline is the system's: an 824pt rounded square inset
+// 100pt with a ~185pt radius. Anything else is shrunk onto a grey platter. So the artwork is clipped
+// to that outline, scaled 4% past it so its own rim and shadow fall outside the clip
 func render(_ px: Int) -> Data {
   let rep = NSBitmapImageRep(
     bitmapDataPlanes: nil, pixelsWide: px, pixelsHigh: px, bitsPerSample: 8, samplesPerPixel: 4,
     hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
   NSGraphicsContext.saveGraphicsState()
   NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+  NSGraphicsContext.current!.imageInterpolation = .high
   let s = CGFloat(px) / 1024
-
-  // macOS icon grid: an 824pt body inset 100pt, corner radius ~185pt
-  let body = NSRect(x: 100 * s, y: 100 * s, width: 824 * s, height: 824 * s)
-  let shape = NSBezierPath(roundedRect: body, xRadius: 185 * s, yRadius: 185 * s)
-  NSGradient(
-    starting: NSColor(srgbRed: 0.48, green: 0.55, blue: 0.97, alpha: 1),
-    ending: NSColor(srgbRed: 0.33, green: 0.27, blue: 0.80, alpha: 1))!
-    .draw(in: shape, angle: -90)
-
-  let font = NSFont.systemFont(ofSize: 600 * s, weight: .heavy)
-  let rounded = font.fontDescriptor.withDesign(.rounded).flatMap { NSFont(descriptor: $0, size: 600 * s) } ?? font
-  let glyph = NSAttributedString(string: "n", attributes: [.font: rounded, .foregroundColor: NSColor.white])
-  let size = glyph.size()
-  glyph.draw(at: NSPoint(x: (1024 * s - size.width) / 2 + 6 * s, y: (1024 * s - size.height) / 2 + 20 * s))
-
-  let dot = NSRect(x: 650 * s, y: 650 * s, width: 190 * s, height: 190 * s)
-  NSColor(srgbRed: 0.99, green: 0.72, blue: 0.25, alpha: 1).setFill()
-  NSBezierPath(ovalIn: dot).fill()
-  NSColor.white.setStroke()
-  let ring = NSBezierPath(ovalIn: dot)
-  ring.lineWidth = 22 * s
-  ring.stroke()
-
+  NSBezierPath(roundedRect: NSRect(x: 100 * s, y: 100 * s, width: 824 * s, height: 824 * s), xRadius: 185 * s, yRadius: 185 * s)
+    .addClip()
+  let k = 824 * 1.04 * s / art.side
+  // Centre the artwork's square on the canvas; AppKit's y axis points up
+  let mid = (x: art.x + art.side / 2, y: side - (art.y + art.side / 2))
+  source.draw(
+    in: NSRect(x: 512 * s - mid.x * k, y: 512 * s - mid.y * k, width: side * k, height: side * k),
+    from: .zero, operation: .sourceOver, fraction: 1)
   NSGraphicsContext.restoreGraphicsState()
   return rep.representation(using: .png, properties: [:])!
 }

@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/icon.png" width="160" alt="nudgy icon"></p>
+
 # nudgy
 
 Notes and reminders from the terminal, for macOS.

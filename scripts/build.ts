@@ -22,6 +22,7 @@ const sources = [
   "src/notifier/main.swift",
   "src/notifier/Info.plist",
   "scripts/icon.swift",
+  "assets/icon.png",
 ];
 const stamp = "dist/.notifier-source-hash";
 const hasher = new Bun.CryptoHasher("sha256");
