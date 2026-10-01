@@ -90,14 +90,38 @@ test("hovering the divider shows a resize pointer, and leaving it restores the d
   expect(a.pointer()).toBe("default");
 });
 
-test("hovering the divider highlights it, for terminals that ignore pointer shapes", async () => {
+test("hovering lights the vertical divider only, for terminals that ignore pointer shapes", async () => {
   const a = await app();
-  const idle = a.dividerColor();
-  expect(idle).not.toEqual(RGBA.fromHex(ACCENT).toInts());
+  const accent = RGBA.fromHex(ACCENT).toInts();
+  const idle = a.colorAt(49, 5);
+  expect(idle).not.toEqual(accent);
   await a.mouse((m) => m.moveTo(49, 5));
-  expect(a.dividerColor()).toEqual(RGBA.fromHex(ACCENT).toInts());
+  // At 100 columns the footer wraps to two lines, so the panes' bottom border is row 21
+  expect(a.frame().split("\n")[21]?.slice(49, 51)).toBe("┘└");
+  for (const y of [1, 5, 20]) {
+    expect(a.colorAt(49, y)).toEqual(accent);
+    expect(a.colorAt(50, y)).toEqual(accent);
+  }
+  // The corners, the outer edges and the frame characters are left alone
+  expect(a.colorAt(49, 0)).toEqual(idle);
+  expect(a.colorAt(49, 21)).toEqual(idle);
+  expect(a.colorAt(0, 5)).toEqual(idle);
+  expect(a.colorAt(99, 5)).toEqual(idle);
+  expect(a.frame().split("\n")[5]?.slice(49, 51)).toBe("││");
   await a.mouse((m) => m.moveTo(60, 5));
-  expect(a.dividerColor()).toEqual(idle);
+  expect(a.colorAt(49, 5)).toEqual(idle);
+});
+
+test("the lit divider follows a drag", async () => {
+  const a = await app();
+  await a.mouse(async (m) => {
+    await m.pressDown(49, 5);
+    await m.emitMouseEvent("drag", 29, 5);
+  });
+  const accent = RGBA.fromHex(ACCENT).toInts();
+  expect(a.colorAt(29, 5)).toEqual(accent);
+  expect(a.colorAt(30, 5)).toEqual(accent);
+  expect(a.colorAt(49, 5)).not.toEqual(accent);
 });
 
 test("the resize pointer holds through a drag and follows the divider", async () => {

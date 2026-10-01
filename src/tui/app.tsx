@@ -1,5 +1,9 @@
 import { basename } from "node:path";
-import type { MouseEvent, MousePointerStyle } from "@opentui/core";
+import type {
+  BoxRenderable,
+  MouseEvent,
+  MousePointerStyle,
+} from "@opentui/core";
 import {
   useFocus,
   useKeyboard,
@@ -72,6 +76,7 @@ export function App({
   // Several drag events can arrive between renders, so the handlers read refs, not state
   const drag = useRef<{ start: number; ratio: number } | null>(null);
   const pointer = useRef<MousePointerStyle>("default");
+  const panes = useRef<BoxRenderable>(null);
 
   const reload = () => setVersion((v) => v + 1);
   // biome-ignore lint/correctness/useExhaustiveDependencies: version is the reload trigger
@@ -259,9 +264,12 @@ export function App({
   };
 
   const leftCols = splitColumns(split, width);
-  // The divider is the two border columns where the panes meet, above the one-line footer
+  // The footer wraps on narrow terminals, so the panes' height comes from layout, not the terminal.
+  // Read it when needed: layout runs after render, so during the first render it is still 0
+  const paneRows = () => panes.current?.height || height - 1;
+  // The divider is the two border columns where the panes meet
   const onSeam = (e: MouseEvent) =>
-    (e.x === leftCols - 1 || e.x === leftCols) && e.y < height - 1;
+    (e.x === leftCols - 1 || e.x === leftCols) && e.y < paneRows();
   // Terminals without pointer-shape support (OSC 22), like Warp and Terminal.app, ignore the shape,
   // so the divider also lights up while the pointer is on it
   const showPointer = (style: MousePointerStyle) => {
@@ -312,6 +320,7 @@ export function App({
       {/* biome-ignore lint/a11y/noStaticElementInteractions: a terminal box, not a DOM element; there are no roles */}
       {/* biome-ignore lint/a11y/useKeyWithMouseEvents: a pointer shape only; keyboard users have no pointer to change */}
       <box
+        ref={panes}
         flexDirection="row"
         flexGrow={1}
         onMouseDown={onSeamDown}
@@ -325,7 +334,6 @@ export function App({
       >
         <box
           border
-          borderColor={resizing || hovering ? ACCENT : undefined}
           title=" nudgy "
           width={leftCols}
           flexDirection="column"
@@ -353,7 +361,6 @@ export function App({
         </box>
         <box
           border
-          borderColor={resizing || hovering ? ACCENT : undefined}
           title=" detail "
           flexGrow={1}
           flexDirection="column"
@@ -368,6 +375,21 @@ export function App({
             <text fg="#8a8f98">no item selected</text>
           )}
         </box>
+        {resizing || hovering ? (
+          // A box border has one colour, so the lit divider is drawn over the two facing vertical
+          // edges. Not selectable: a press on selectable text starts a selection, which steals the drag
+          <text
+            position="absolute"
+            left={leftCols - 1}
+            top={1}
+            width={2}
+            selectable={false}
+            fg={ACCENT}
+            content={Array(Math.max(0, paneRows() - 2))
+              .fill("││")
+              .join("\n")}
+          />
+        ) : null}
       </box>
       {mode.kind === "add" ? (
         <Prompt label="New note:" onSubmit={submitAdd} />

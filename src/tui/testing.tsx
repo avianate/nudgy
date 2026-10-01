@@ -101,10 +101,14 @@ export async function renderApp(
     drag: (fromX: number, toX: number, y = 5) =>
       step(() => t.mockMouse.drag(fromX, y, toX, y)),
     pointer: () => pointers.at(-1) ?? "default",
-    // Colour of the divider: the left pane's top-right corner
-    dividerColor: () => {
-      const spans = t.captureSpans().lines[0]?.spans ?? [];
-      return spans.find((span) => span.text.includes("┐"))?.fg.toInts();
+    // Foreground colour of one cell, walking the row's spans by their cell widths
+    colorAt: (x: number, y: number) => {
+      let col = 0;
+      for (const span of t.captureSpans().lines[y]?.spans ?? []) {
+        if (x < col + span.width) return span.fg.toInts();
+        col += span.width;
+      }
+      return undefined;
     },
     mouse: (fn: (mouse: typeof t.mockMouse) => Promise<void>) =>
       step(() => fn(t.mockMouse)),
