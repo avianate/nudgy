@@ -26,4 +26,6 @@ Usage:
 Recurrence:
   every day [at <time>]                 every weekday [at <time>]
   every mon,thu [at <time>]             every week [at <time>]
-  every <N> hours                       every <N> days [at <time>]`;
+  every <N> hours                       every <N> days [at <time>]
+
+ndg is a short alias: every command above works as ndg too.`;

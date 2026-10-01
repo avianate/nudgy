@@ -1,4 +1,10 @@
-import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  renameSync,
+  rmSync,
+  symlinkSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { $ } from "bun";
@@ -13,6 +19,14 @@ await $`cp dist/nudgy ${tmp}`;
 // Replace via rename, never cp over the live binary: overwriting a signed binary in place invalidates its signature for the running inode
 renameSync(tmp, target);
 console.log(`installed ${target}`);
+
+// ndg is a short alias; a relative symlink keeps following the binary across reinstalls
+const alias = join(binDir, "ndg");
+const aliasTmp = join(binDir, ".ndg.tmp");
+rmSync(aliasTmp, { force: true });
+symlinkSync("nudgy", aliasTmp);
+renameSync(aliasTmp, alias);
+console.log(`installed ${alias} -> nudgy`);
 
 const nudgyDir = join(homedir(), ".nudgy");
 const app = join(nudgyDir, "Nudgy Notifier.app");
