@@ -73,6 +73,13 @@ export async function renderApp(
   };
   await step(() => {});
   const keys = t.mockInput;
+  // The test renderer has no terminal to show a pointer shape, so record what the app asks for
+  const pointers: string[] = [];
+  const setPointer = t.renderer.setMousePointer.bind(t.renderer);
+  t.renderer.setMousePointer = (style) => {
+    pointers.push(style);
+    setPointer(style);
+  };
   return {
     db,
     store,
@@ -91,6 +98,11 @@ export async function renderApp(
     tab: (shift = false) => step(() => keys.pressTab({ shift })),
     type: (text: string) => step(() => keys.typeText(text)),
     enter: () => step(() => keys.pressEnter()),
+    drag: (fromX: number, toX: number, y = 5) =>
+      step(() => t.mockMouse.drag(fromX, y, toX, y)),
+    pointer: () => pointers.at(-1) ?? "default",
+    mouse: (fn: (mouse: typeof t.mockMouse) => Promise<void>) =>
+      step(() => fn(t.mockMouse)),
     // ESC followed at once by a key is how terminals spell Alt+key; a real press has a gap
     escape: async () => {
       await step(() => keys.pressEscape());

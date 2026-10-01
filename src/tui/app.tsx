@@ -1,10 +1,18 @@
 import { basename } from "node:path";
-import { useFocus, useKeyboard, useTerminalDimensions } from "@opentui/react";
-import { useEffect, useMemo, useState } from "react";
+import type { MouseEvent, MousePointerStyle } from "@opentui/core";
+import {
+  useFocus,
+  useKeyboard,
+  useRenderer,
+  useTerminalDimensions,
+} from "@opentui/react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { absolute, relative } from "../cli/format";
 import { type Item, title } from "../core/items";
+import { DEFAULT_SPLIT, splitColumns } from "./split";
 import { type Store, TABS, type Tab } from "./store";
 import {
+  ACCENT,
   Detail,
   Help,
   HINTS,
@@ -21,6 +29,9 @@ export type AppProps = {
   onQuit(): void;
   // Returns the edited body, or null if the editor failed
   onEdit?(item: Item): Promise<string | null>;
+  // Left pane's share of the width; onSplit fires once per drag, when it ends
+  split?: number;
+  onSplit?(ratio: number): void;
 };
 
 // Exactly one handler sees each key, so typing into a prompt can never trigger a shortcut
@@ -43,8 +54,11 @@ export function App({
   refreshMs = 30_000,
   onQuit,
   onEdit,
+  split: initialSplit = DEFAULT_SPLIT,
+  onSplit,
 }: AppProps) {
   const { width, height } = useTerminalDimensions();
+  const renderer = useRenderer();
   const [tab, setTab] = useState<Tab>("due");
   const [version, setVersion] = useState(0);
   const [selection, setSelection] = useState<Selection>({ id: null, index: 0 });
@@ -52,6 +66,11 @@ export function App({
   const [status, setStatus] = useState("");
   const [query, setQuery] = useState("");
   const [repoOnly, setRepoOnly] = useState(false);
+  const [split, setSplit] = useState(initialSplit);
+  const [resizing, setResizing] = useState(false);
+  // Several drag events can arrive between renders, so the handlers read refs, not state
+  const drag = useRef<{ start: number; ratio: number } | null>(null);
+  const pointer = useRef<MousePointerStyle>("default");
 
   const reload = () => setVersion((v) => v + 1);
   // biome-ignore lint/correctness/useExhaustiveDependencies: version is the reload trigger
@@ -172,6 +191,8 @@ export function App({
 
   const edit = async (item: Item) => {
     let edited: string | null;
+    // Suspending hands the pointer back to the terminal; forget the resize shape so a later hover sets it again
+    showPointer("default");
     try {
       edited = await (onEdit as NonNullable<typeof onEdit>)(item);
     } catch (e) {
@@ -236,7 +257,44 @@ export function App({
     );
   };
 
-  const listWidth = Math.floor(width / 2) - 5;
+  const leftCols = splitColumns(split, width);
+  // The divider is the two border columns where the panes meet, above the one-line footer
+  const onSeam = (e: MouseEvent) =>
+    (e.x === leftCols - 1 || e.x === leftCols) && e.y < height - 1;
+  // Terminals without pointer-shape support (OSC 22) ignore this and keep their usual pointer
+  const showPointer = (style: MousePointerStyle) => {
+    if (pointer.current === style) return;
+    pointer.current = style;
+    renderer.setMousePointer(style);
+    // The shape goes out with the next frame, and a hover alone doesn't draw one
+    renderer.requestRender();
+  };
+  const onSeamHover = (e: MouseEvent) => {
+    if (!drag.current) showPointer(onSeam(e) ? "col-resize" : "default");
+  };
+  const endDrag = () => {
+    if (!drag.current) return;
+    const { start, ratio } = drag.current;
+    drag.current = null;
+    setResizing(false);
+    if (ratio !== start) onSplit?.(ratio);
+  };
+  const onSeamDown = (e: MouseEvent) => {
+    // A release lost off the window edge would leave the drag live; settle it before the new press
+    endDrag();
+    if (e.button !== 0 || !onSeam(e)) return;
+    drag.current = { start: leftCols / width, ratio: leftCols / width };
+    setResizing(true);
+    e.preventDefault();
+  };
+  const onSeamDrag = (e: MouseEvent) => {
+    if (!drag.current) return;
+    // Keep the left pane's right border under the pointer, and the stored ratio inside the clamp
+    drag.current.ratio = splitColumns((e.x + 1) / width, width) / width;
+    setSplit(drag.current.ratio);
+  };
+
+  const listWidth = leftCols - 5;
   const rows = Math.max(1, height - 5);
   const start = Math.max(0, index - rows + 1);
   const visible = items.slice(start, start + rows);
@@ -247,11 +305,25 @@ export function App({
 
   return (
     <box flexDirection="column" width="100%" height="100%">
-      <box flexDirection="row" flexGrow={1}>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: a terminal box, not a DOM element; there are no roles */}
+      {/* biome-ignore lint/a11y/useKeyWithMouseEvents: a pointer shape only; keyboard users have no pointer to change */}
+      <box
+        flexDirection="row"
+        flexGrow={1}
+        onMouseDown={onSeamDown}
+        onMouseDrag={onSeamDrag}
+        onMouseUp={(e) => {
+          endDrag();
+          onSeamHover(e);
+        }}
+        onMouseMove={onSeamHover}
+        onMouseOut={onSeamHover}
+      >
         <box
           border
+          borderColor={resizing ? ACCENT : undefined}
           title=" nudgy "
-          width="50%"
+          width={leftCols}
           flexDirection="column"
           paddingLeft={1}
           paddingRight={1}
@@ -277,6 +349,7 @@ export function App({
         </box>
         <box
           border
+          borderColor={resizing ? ACCENT : undefined}
           title=" detail "
           flexGrow={1}
           flexDirection="column"

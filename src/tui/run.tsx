@@ -5,6 +5,7 @@ import type { Context } from "../cli/context";
 import { editText } from "../cli/editor";
 import { refreshStatus } from "../core/status";
 import { App } from "./app";
+import { loadSplit, saveSplit } from "./split";
 import { createStore } from "./store";
 
 type Guarded = {
@@ -79,7 +80,14 @@ export async function runTui(ctx: Context): Promise<number> {
       }
     };
     createRoot(renderer).render(
-      <App store={store} repo={origin.repo} onQuit={quit} onEdit={onEdit} />,
+      <App
+        store={store}
+        repo={origin.repo}
+        onQuit={quit}
+        onEdit={onEdit}
+        split={loadSplit(ctx.paths.tui)}
+        onSplit={(ratio) => saveSplit(ctx.paths.tui, ratio)}
+      />,
     );
   });
 }

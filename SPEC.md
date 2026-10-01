@@ -205,6 +205,10 @@ Missing keys fall back to defaults. An invalid file is reported, never overwritt
   `e` edit (suspends the TUI and opens `$EDITOR`), `r` set reminder, `s` snooze,
   `d` done, `x` delete (confirms), `h` toggle current-repo filter, `?` help, `q` quit.
 - Reflects daemon-side changes on focus or a 30-second refresh.
+- Drag the divider between the panes to resize them. The split is saved as a ratio in
+  `~/.nudgy/tui.json` and restored on the next launch. A missing or corrupt file means 50/50.
+  Hovering the divider requests a `col-resize` pointer (OSC 22). As of 2026-10-01 no terminal
+  tried shows it; to revisit.
 
 ### Development commands
 
@@ -227,7 +231,7 @@ place over a signed binary gets it SIGKILLed on the next launch on Apple Silicon
 ## Data
 
 `~/.nudgy/` (overridable with `NUDGY_HOME`): `nudgy.db`, `config.json`, `daemon.log`,
-`notifier.log` (clicked notification actions), `status`.
+`notifier.log` (clicked notification actions), `status`, `tui.json` (pane split).
 
 ```sql
 CREATE TABLE items (

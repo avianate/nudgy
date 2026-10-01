@@ -10,6 +10,7 @@ test("NUDGY_HOME overrides the data directory", () => {
     log: "/tmp/jh/daemon.log",
     status: "/tmp/jh/status",
     tick: "/tmp/jh/tick",
+    tui: "/tmp/jh/tui.json",
     bin: "/Users/dev/.local/bin/nudgy",
     launchAgent:
       "/Users/dev/Library/LaunchAgents/io.github.avianate.nudgy.daemon.plist",

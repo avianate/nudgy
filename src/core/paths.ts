@@ -8,6 +8,7 @@ export type Paths = {
   log: string;
   status: string;
   tick: string;
+  tui: string;
   bin: string;
   launchAgent: string;
   notifierApp: string;
@@ -28,6 +29,8 @@ export function resolvePaths(env: Env): Paths {
     log: join(home, "daemon.log"),
     status: join(home, "status"),
     tick: join(home, "tick"),
+    // TUI layout the user set by hand; kept out of config.json, which nudgy never writes
+    tui: join(home, "tui.json"),
     bin: join(user, ".local", "bin", "nudgy"),
     launchAgent: join(
       user,

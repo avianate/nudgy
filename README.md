@@ -93,6 +93,8 @@ Banners have Done, Snooze and Remind later… actions.
 `j/k` move · `tab` switch tabs (Due, Today, All, Done) · `/` search · `a` add · `e` edit ·
 `r` remind · `s` snooze · `d` done · `x` delete · `h` current-repo filter · `?` help · `q` quit
 
+Drag the divider between the panes to resize them; nudgy remembers the split.
+
 ## Config
 
 `~/.nudgy/config.json`:

@@ -11,7 +11,7 @@ export const TAB_LABELS: Record<Tab, string> = {
 };
 
 const MUTED = "#8a8f98";
-const ACCENT = "#7aa2f7";
+export const ACCENT = "#7aa2f7";
 const SELECTED_BG = "#2b3350";
 
 export const markdownStyle = SyntaxStyle.fromStyles({
@@ -161,6 +161,7 @@ const HELP: [string, string][] = [
   ["s", "snooze by defaultSnooze"],
   ["d", "done (recurring: next occurrence)"],
   ["x", "delete (confirms)"],
+  ["drag divider", "resize the panes (remembered)"],
   ["?", "this help"],
   ["q", "quit"],
 ];
