@@ -34,6 +34,12 @@ describe("plistXml", () => {
     expect(xml).toContain("<key>RunAtLoad</key>\n  <true/>");
   });
 
+  test("ties the agent to the notifier app, so Login Items shows its name and icon", () => {
+    expect(xml).toContain(
+      "<key>AssociatedBundleIdentifiers</key>\n  <array>\n    <string>io.github.avianate.nudgy</string>\n  </array>",
+    );
+  });
+
   test("logs to daemon.log and passes NUDGY_HOME through", () => {
     expect(xml).toContain(
       "<key>StandardOutPath</key>\n  <string>/Users/dev/.nudgy/daemon.log</string>",

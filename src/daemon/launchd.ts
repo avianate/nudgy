@@ -2,6 +2,8 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import type { Env, Paths } from "../core/paths";
 
 export const LABEL = "io.github.avianate.nudgy.daemon";
+// Login Items shows this app's name and icon for the agent, rather than a bare executable
+export const NOTIFIER_BUNDLE_ID = "io.github.avianate.nudgy";
 
 export type JobState = { loaded: boolean; pid: number | null };
 
@@ -33,6 +35,10 @@ export function plistXml(paths: Paths): string {
     <key>NUDGY_HOME</key>
     <string>${escapeXml(paths.home)}</string>
   </dict>
+  <key>AssociatedBundleIdentifiers</key>
+  <array>
+    <string>${NOTIFIER_BUNDLE_ID}</string>
+  </array>
   <key>RunAtLoad</key>
   <true/>
   <key>KeepAlive</key>
